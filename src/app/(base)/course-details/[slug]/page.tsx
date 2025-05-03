@@ -1,0 +1,792 @@
+"use client";
+import Image from "next/image";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams } from "next/navigation";
+import useAxios from "../../../../utils/axios";
+import CartId from "../../../../views/plugins/CartId";
+import GetCurrentAddress from "../../../../views/plugins/UserCountry";
+import UserData from "../../../../views/plugins/UserData";
+import Toast from "../../../../views/plugins/Toast";
+
+import { motion } from "framer-motion";
+import {
+  Twitter,
+  Facebook,
+  Linkedin,
+  ChevronDown,
+  PlayCircle,
+  Lock,
+  FileText,
+  BookOpen,
+  BarChart2,
+  Globe,
+  Calendar,
+  Users,
+  Star,
+  ListOrdered,
+  ShoppingCart,
+  CheckCircle,
+  Loader2,
+} from "lucide-react";
+
+interface Course {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  image: string;
+  file?: string;
+  category: { title: string };
+  average_rating: number;
+  students: {
+    id: number;
+    full_name: string;
+    email: string;
+    username: string;
+    date_joined: string;
+  }[];
+  level: string;
+  date: string;
+  language: string;
+  teacher: {
+    image: string;
+    full_name: string;
+    bio: string;
+    twitter: string;
+    facebook: string;
+    linkedin: string;
+    about: string;
+  };
+  reviews: {
+    profile: { full_name: string };
+    rating: number;
+    review: string;
+    date: string;
+  }[];
+  curriculum: {
+    variant_id: number;
+    title: string;
+    content_duration: string;
+    variant_items: {
+      title: string;
+      preview: boolean;
+      duration: string;
+    }[];
+  }[];
+}
+
+function CourseDetail(): React.ReactElement {
+  const [course, setCourse] = useState<Course | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [addToCartBtn, setAddToCartBtn] = useState<string>("Add To Cart");
+  const [activeTab, setActiveTab] = useState<string>("overview");
+
+  const params = useParams();
+  const slug = params?.slug as string;
+
+  const { country } = GetCurrentAddress(); 
+
+  const userId = UserData()?.user_id || 0;
+
+  const fetchCourse = useCallback(async (): Promise<void> => {
+    if (!slug) return;
+    try {
+      const res = await useAxios.get(`course/course-detail/${slug}/`);
+      setCourse(res.data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching course:", error);
+      setIsLoading(false);
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    if (slug) {
+      fetchCourse();
+    }
+
+  }, [slug, fetchCourse]);
+
+  const addToCart = async (
+    courseId: number,
+    userId: number,
+    price: number,
+    country: string,
+    cartId: string
+  ): Promise<void> => {
+    setAddToCartBtn("Adding To Cart");
+    const formdata = new FormData();
+    formdata.append("course_id", courseId.toString());
+    formdata.append("user_id", userId.toString());
+    formdata.append("price", price.toString());
+    formdata.append("country_name", country);
+    formdata.append("cart_id", cartId);
+    try {
+      await useAxios.post(`course/cart/`, formdata);
+      setAddToCartBtn("Added To Cart");
+      Toast().fire({ title: "Added To Cart", icon: "success" });
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      setAddToCartBtn("Add To Cart");
+    }
+  };
+
+  return (
+    <div className="bg-gray-50 min-h-screen">
+      <div className="container mx-auto px-4 py-8">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900" />
+          </div>
+        ) : course ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <div className="bg-white shadow-lg rounded-lg p-6">
+                <div className="mb-8">
+                  {/* Title and Category */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
+                    <div className="w-fit">
+                      <span className="inline-block bg-gradient-to-r from-blue-600 to-blue-500 text-white text-sm font-medium px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-shadow">
+                        {course.category.title}
+                      </span>
+                    </div>
+                    <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+                      {course.title}
+                    </h1>
+                  </div>
+
+                  {/* Tab Navigation */}
+                  <nav className="relative">
+                    <div className="flex space-x-8 border-b border-gray-200">
+                      {[
+                        { id: "overview", label: "Overview" },
+                        { id: "curriculum", label: "Curriculum" },
+                        { id: "instructor", label: "Instructor" },
+                        { id: "reviews", label: "Reviews" },
+                      ].map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setActiveTab(tab.id)}
+                          className={`relative py-3 text-sm font-medium transition-colors focus:outline-none ${
+                            activeTab === tab.id
+                              ? "text-blue-600"
+                              : "text-gray-500 hover:text-gray-700"
+                          }`}
+                        >
+                          {tab.label}
+                          {activeTab === tab.id && (
+                            <motion.span
+                              layoutId="activeTabIndicator"
+                              className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
+                              transition={{
+                                type: "spring",
+                                bounce: 0.2,
+                                duration: 0.6,
+                              }}
+                            />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </nav>
+                </div>
+                {activeTab === "overview" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-8 mt-6"
+                  >
+                    {/* Course Description */}
+                    <div className="prose prose-blue max-w-none text-gray-700">
+                      <div
+                        dangerouslySetInnerHTML={{ __html: course.description }}
+                      />
+                    </div>
+
+                    {/* Course Metadata Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Course Details */}
+                      <div className="bg-blue-50 p-6 rounded-xl">
+                        <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center gap-2">
+                          <BookOpen className="w-5 h-5" />
+                          Course Details
+                        </h3>
+                        <div className="space-y-3">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Level</span>
+                            <span className="font-medium capitalize">
+                              {course.level}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Language</span>
+                            <span className="font-medium">
+                              {course.language}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Last Updated</span>
+                            <span className="font-medium">
+                              {new Date(course.date).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                }
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Category</span>
+                            <span className="font-medium">
+                              {course.category.title}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Student Statistics */}
+                      <div className="bg-gray-50 p-6 rounded-xl">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                          <Users className="w-5 h-5" />
+                          Student Statistics
+                        </h3>
+                        <div className="space-y-3">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">
+                              Total Students
+                            </span>
+                            <span className="font-medium">
+                              {course.students.length}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">
+                              Average Rating
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                              <span className="font-medium">
+                                {course.average_rating.toFixed(1)}/5
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Total Reviews</span>
+                            <span className="font-medium">
+                              {course.reviews.length}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Curriculum Preview */}
+                    {course.curriculum.length > 0 && (
+                      <div className="bg-white p-6 rounded-xl border border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                          <ListOrdered className="w-5 h-5" />
+                          Curriculum Preview
+                        </h3>
+                        <div className="space-y-4">
+                          {course.curriculum.slice(0, 3).map((module) => (
+                            <div
+                              key={module.variant_id}
+                              className="border-l-2 border-blue-200 pl-4"
+                            >
+                              <h4 className="font-medium text-gray-800">
+                                {module.title}
+                              </h4>
+                              <div className="text-sm text-gray-500 mt-1">
+                              {module.variant_items.map((item, index) => {
+                                 
+                                 const formatDuration = (duration: string) => {
+                                   if (!duration) return "0 minutes";
+
+                                   const parts = duration.split(":");
+                                   const hours = parseInt(parts[0]);
+                                   const minutes = parseInt(parts[1]);
+                                   const seconds = parseInt(parts[2]);
+
+                                   if (hours > 0) {
+                                     return `${hours} hour${
+                                       hours !== 1 ? "s" : ""
+                                     }${
+                                       minutes > 0
+                                         ? ` ${minutes} minute${
+                                             minutes !== 1 ? "s" : ""
+                                           }`
+                                         : ""
+                                     }`;
+                                   } else if (minutes > 0) {
+                                     return `${minutes} minute${
+                                       minutes !== 1 ? "s" : ""
+                                     }`;
+                                   } else {
+                                     return `${seconds} second${
+                                       seconds !== 1 ? "s" : ""
+                                     }`;
+                                   }
+                                 };
+
+                                 return (
+                                   <div
+                                     key={`${item.title}-${index}`}
+                                     className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50"
+                                   >
+                                     <div className="flex items-center gap-3">
+                                       {item.preview ? (
+                                         <PlayCircle className="h-5 w-5 text-green-500" />
+                                       ) : (
+                                         <Lock className="h-5 w-5 text-gray-400" />
+                                       )}
+                                       <span className="text-gray-700">
+                                         {item.title}
+                                       </span>
+                                     </div>
+                                     <div className="flex items-center gap-2">
+                                       {item.preview && (
+                                         <Badge
+                                           variant="outline"
+                                           className="text-green-600 bg-green-50"
+                                         >
+                                           Preview
+                                         </Badge>
+                                       )}
+                                       <span className="text-sm text-gray-400">
+                                         {formatDuration(item.duration)}
+                                       </span>
+                                     </div>
+                                   </div>
+                                 );
+                               })}
+                              </div>
+                            </div>
+                          ))}
+                          {course.curriculum.length > 3 && (
+                            <div className="text-blue-600 font-medium mt-2">
+                              + {course.curriculum.length - 3} more modules
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+                {activeTab === "curriculum" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-8 space-y-4"
+                  >
+                    {course.curriculum.length > 0 ? (
+                      course.curriculum.map((module) => (
+                        <Collapsible key={module.variant_id}>
+                          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                            <CollapsibleTrigger asChild>
+                              <button className="w-full flex justify-between items-center px-6 py-4 hover:bg-gray-50 transition-colors">
+                                <div className="flex items-center gap-4">
+                                  <ChevronDown className="h-5 w-5 text-gray-400 transition-transform collapsible-[data-state=open]:rotate-180" />
+                                  <div className="text-left">
+                                    <h3 className="text-lg font-semibold text-gray-900">
+                                      {module.title}
+                                    </h3>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                      {module.content_duration}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Badge
+                                  variant="outline"
+                                  className="bg-blue-50 text-blue-600"
+                                >
+                                  {module.variant_items.length} lessons
+                                </Badge>
+                              </button>
+                            </CollapsibleTrigger>
+
+                            <CollapsibleContent>
+                              <div className="border-t border-gray-100 px-6 py-4 space-y-3">
+                                {module.variant_items.map((item, index) => {
+                                 
+                                  const formatDuration = (duration: string) => {
+                                    if (!duration) return "0 minutes";
+
+                                    const parts = duration.split(":");
+                                    const hours = parseInt(parts[0]);
+                                    const minutes = parseInt(parts[1]);
+                                    const seconds = parseInt(parts[2]);
+
+                                    if (hours > 0) {
+                                      return `${hours} hour${
+                                        hours !== 1 ? "s" : ""
+                                      }${
+                                        minutes > 0
+                                          ? ` ${minutes} minute${
+                                              minutes !== 1 ? "s" : ""
+                                            }`
+                                          : ""
+                                      }`;
+                                    } else if (minutes > 0) {
+                                      return `${minutes} minute${
+                                        minutes !== 1 ? "s" : ""
+                                      }`;
+                                    } else {
+                                      return `${seconds} second${
+                                        seconds !== 1 ? "s" : ""
+                                      }`;
+                                    }
+                                  };
+
+                                  return (
+                                    <div
+                                      key={`${item.title}-${index}`}
+                                      className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        {item.preview ? (
+                                          <PlayCircle className="h-5 w-5 text-green-500" />
+                                        ) : (
+                                          <Lock className="h-5 w-5 text-gray-400" />
+                                        )}
+                                        <span className="text-gray-700">
+                                          {item.title}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        {item.preview && (
+                                          <Badge
+                                            variant="outline"
+                                            className="text-green-600 bg-green-50"
+                                          >
+                                            Preview
+                                          </Badge>
+                                        )}
+                                        <span className="text-sm text-gray-400">
+                                          {formatDuration(item.duration)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </CollapsibleContent>
+                          </div>
+                        </Collapsible>
+                      ))
+                    ) : (
+                      <div className="text-center p-8 rounded-xl bg-gray-50 border-2 border-dashed border-gray-200">
+                        <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-500">
+                          Curriculum details coming soon
+                        </p>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+                {activeTab === "instructor" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6"
+                  >
+                    <div className="flex flex-col md:flex-row gap-6 items-start">
+                      <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-blue-50">
+                        <Image
+                          src={course.teacher.image}
+                          alt={course.teacher.full_name}
+                          width={128}
+                          height={128}
+                          className="object-cover"
+                        />
+                      </div>
+
+                      <div className="flex-1 space-y-4">
+                        <div>
+                          <h3 className="text-2xl font-bold text-gray-900">
+                            {course.teacher.full_name}
+                          </h3>
+                          <p className="text-blue-600 mt-1">
+                            {course.teacher.bio}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-4">
+                          {course.teacher.twitter && (
+                            <a
+                              href={course.teacher.twitter}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-600 transition-colors"
+                            >
+                              <Twitter className="w-6 h-6" />
+                            </a>
+                          )}
+                          {course.teacher.facebook && (
+                            <a
+                              href={course.teacher.facebook}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 transition-colors"
+                            >
+                              <Facebook className="w-6 h-6" />
+                            </a>
+                          )}
+                          {course.teacher.linkedin && (
+                            <a
+                              href={course.teacher.linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-700 hover:text-blue-900 transition-colors"
+                            >
+                              <Linkedin className="w-6 h-6" />
+                            </a>
+                          )}
+                        </div>
+
+                        <div className="pt-4 border-t border-gray-100">
+                          <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                            About the Instructor
+                          </h4>
+                          <p className="text-gray-700 leading-relaxed">
+                            {course.teacher.about}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+                {activeTab === "reviews" && (
+                  <div className="mt-8 space-y-8">
+                    {course.reviews.map((review, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white p-6 rounded-xl shadow-sm border border-gray-100"
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className="flex-shrink-0">
+                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                              <span className="text-blue-600 font-medium">
+                                {review.profile.full_name[0]}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex-1 space-y-2">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-semibold text-gray-900">
+                                  {review.profile.full_name}
+                                </h4>
+                                <p className="text-sm text-gray-500">
+                                  {new Date(review.date).toLocaleDateString(
+                                    "en-US",
+                                    {
+                                      year: "numeric",
+                                      month: "long",
+                                      day: "numeric",
+                                    }
+                                  )}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <svg
+                                    key={star}
+                                    className={`w-5 h-5 ${
+                                      star <= review.rating
+                                        ? "text-yellow-400"
+                                        : "text-gray-300"
+                                    }`}
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                  </svg>
+                                ))}
+                              </div>
+                            </div>
+
+                            <p className="text-gray-700 mt-2">
+                              {review.review}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="lg:col-span-1">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -5 }}
+                className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 hover:shadow-2xl transition-all duration-300"
+              >
+                {/* Media Container - Fixed Video Player */}
+                <div className="relative aspect-video w-full">
+                  {course?.file ? (
+                    <div className="relative h-full w-full">
+                      <video
+                        controls
+                        controlsList="nodownload"
+                        className="w-full h-full object-cover"
+                        poster={course.image}
+                      >
+                        <source src={course.file} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                      <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/10 to-transparent" />
+                    </div>
+                  ) : (
+                    <>
+                      <Image
+                        src={course?.image ?? "/fallback.jpg"}
+                        alt={course?.title ?? "Course preview"}
+                        fill
+                        className="object-cover"
+                        priority
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                    </>
+                  )}
+                </div>
+
+                {/* Pricing & CTA */}
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-end gap-2">
+                      <span className="text-3xl font-bold text-gray-900">
+                        ${course.price}
+                      </span>
+                      <span className="text-lg text-gray-400 line-through">
+                        $1700
+                      </span>
+                    </div>
+                    <div className=" flex flex-col sm:flex-row gap-3">
+                      {addToCartBtn === "Add To Cart" && (
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          type="button"
+                          className="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-medium shadow-lg px-3 py-3 rounded-xl flex items-center justify-center gap-2"
+                          onClick={() =>
+                            addToCart(
+                              course.id,
+                              userId,
+                              course.price,
+                              country,
+                              CartId() || ""
+                            )
+                          }
+                        >
+                          <ShoppingCart className="w-5 h-5" />
+                          Add To Cart
+                        </motion.button>
+                      )}
+
+                      {addToCartBtn === "Added To Cart" && (
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          type="button"
+                          className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-medium shadow-lg px-6 py-3 rounded-xl flex items-center justify-center gap-2"
+                          onClick={() =>
+                            addToCart(
+                              course.id,
+                              userId,
+                              course.price,
+                              country,
+                              CartId() || ""
+                            )
+                          }
+                        >
+                          <CheckCircle className="w-5 h-5" />
+                          Added To Cart
+                        </motion.button>
+                      )}
+
+                      {addToCartBtn === "Adding To Cart" && (
+                        <button
+                          type="button"
+                          className="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 text-white font-medium shadow-lg px-6 py-3 rounded-xl flex items-center justify-center gap-2"
+                          disabled
+                        >
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Adding To Cart
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Course Meta - Fixed Curriculum Count */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                      <BookOpen className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <p className="text-sm text-gray-500">Lectures</p>
+                        <p className="font-medium">
+                          {course.curriculum.reduce(
+                            (total, module) =>
+                              total + module.variant_items.length,
+                            0
+                          )}{" "}
+                          total lessons
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                      <BarChart2 className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <p className="text-sm text-gray-500">Level</p>
+                        <p className="font-medium capitalize">{course.level}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                      <Globe className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <p className="text-sm text-gray-500">Language</p>
+                        <p className="font-medium">{course.language}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                      <Calendar className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <p className="text-sm text-gray-500">Last Updated</p>
+                        <p className="font-medium">
+                          {new Date(course.date).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        ) : (
+          <p className="text-center text-gray-700">Course not found</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default CourseDetail;
