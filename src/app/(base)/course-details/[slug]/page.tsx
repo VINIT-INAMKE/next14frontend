@@ -138,7 +138,7 @@ function CourseDetail(): React.ReactElement {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-gradient-to-b from-primaryCustom-300 to-primaryCustom-900 min-h-screen">
       <div className="container mx-auto px-4 py-8">
         {isLoading ? (
           <div className="flex justify-center items-center h-64">

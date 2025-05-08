@@ -126,13 +126,13 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-gradient-to-r from-blue-800 to-blue-600 text-white py-16 md:py-24">
+    <div className="min-h-screen bg-gradient-to-b from-primaryCustom-300 to-primaryCustom-900">
+      <div className="bg-gradient-to-r from-buttonsCustom-700 to-buttonsCustom-900 text-white py-16 md:py-24">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-4xl mx-auto">
             <Badge
               variant="secondary"
-              className="mb-4 bg-blue-100 text-blue-600"
+              className="mb-4 bg-buttonsCustom-100 text-buttonsCustom-900"
             >
               <Zap className="h-4 w-4 mr-2" />
               Blockchain-Powered Learning
@@ -151,21 +151,21 @@ export default function Home() {
         <div className="grid md:grid-cols-3 gap-8 mb-16">
           <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
             <div className="bg-blue-50 w-fit p-3 rounded-lg mb-4">
-              <ShieldCheck className="h-8 w-8 text-blue-600" />
+              <ShieldCheck className="h-8 w-8 text-buttonsCustom-600" />
             </div>
             <h3 className="text-xl font-bold mb-2">Immutable Certificates</h3>
             <p className="text-gray-600">All course completions recorded on blockchain for permanent verification</p>
           </div>
           <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
             <div className="bg-blue-50 w-fit p-3 rounded-lg mb-4">
-              <Users className="h-8 w-8 text-blue-600" />
+              <Users className="h-8 w-8 text-buttonsCustom-600" />
             </div>
             <h3 className="text-xl font-bold mb-2">Expert Instructors</h3>
             <p className="text-gray-600">Learn from active Web3 developers and blockchain architects</p>
           </div>
           <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
             <div className="bg-blue-50 w-fit p-3 rounded-lg mb-4">
-              <Globe className="h-8 w-8 text-blue-600" />
+              <Globe className="h-8 w-8 text-buttonsCustom-600" />
             </div>
             <h3 className="text-xl font-bold mb-2">Global Network</h3>
             <p className="text-gray-600">Join 150k+ developers in our decentralized learning community</p>
@@ -182,10 +182,10 @@ export default function Home() {
             ].map((category) => (
               <div 
                 key={category.name}
-                className="bg-white p-6 rounded-xl hover:shadow-md transition-shadow cursor-pointer border border-gray-100"
+                className="bg-white p-6 rounded-xl hover:shadow-md transition-shadow cursor-pointer border border-buttonsCustom-100"
                 onClick={() => router.push(`/courses?category=${category.name.toLowerCase()}`)}
               >
-                <div className="bg-blue-50 w-fit p-3 rounded-lg mb-3">
+                <div className="bg-buttonsCustom-100 w-fit p-3 rounded-lg mb-3">
                   {category.icon}
                 </div>
                 <h3 className="font-semibold mb-1">{category.name}</h3>
@@ -364,10 +364,10 @@ export default function Home() {
           </>
         )}
       </div>
-      <div className="bg-white rounded-xl shadow-sm p-8 mb-16 border border-gray-100">
+      <div className="bg-primaryCustom-200 rounded-xl shadow-sm p-8 mb-16 border border-gray-100">
           <h2 className="text-3xl font-bold mb-8">Structured Learning Paths</h2>
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="border-l-4 border-blue-600 pl-4">
+            <div className="border-l-4 border-buttonsCustom-900 pl-4">
               <h3 className="text-xl font-semibold mb-2">Blockchain Developer Track</h3>
               <p className="text-gray-600 mb-4">Master Solidity, Smart Contract Security, and DApp Deployment</p>
               <div className="flex items-center text-sm text-gray-500">
@@ -375,7 +375,7 @@ export default function Home() {
                 <span>8 Courses • 72 Hours</span>
               </div>
             </div>
-            <div className="border-l-4 border-blue-600 pl-4">
+            <div className="border-l-4 border-buttonsCustom-900 pl-4">
               <h3 className="text-xl font-semibold mb-2">Web3 Specialist Track</h3>
               <p className="text-gray-600 mb-4">Learn NFT Standards, DAO Governance, and DeFi Protocols</p>
               <div className="flex items-center text-sm text-gray-500">

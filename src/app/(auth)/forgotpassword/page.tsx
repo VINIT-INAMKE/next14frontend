@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import apiInstance from "@/utils/axios";
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -44,7 +44,7 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-blue-50 to-white py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primaryCustom-300 to-primaryCustom-900 py-8 px-4 sm:px-6 lg:px-8">
       <motion.div
         className="w-full max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col lg:flex-row"
       >
@@ -91,19 +91,8 @@ function ForgotPassword() {
           </div>
         </div>
 
-        {/* Illustration Section */}
-        <div className="hidden lg:block relative w-full lg:w-1/2 bg-blue-50">
-          <div className="absolute inset-0 flex items-center justify-center p-6 sm:p-8 lg:p-12">
-            <Image
-              src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/authentication/illustration.svg"
-              alt="Forgot Password illustration"
-              width={500}
-              height={500}
-              className="w-full h-full object-contain"
-              priority
-            />
-          </div>
-        </div>
+    
+       
       </motion.div>
     </div>
   );

@@ -33,7 +33,7 @@ function BaseHeader() {
 
   return (
     <CartContext.Provider value={[cartCount,setCartCount]}>
-    <header className="bg-white shadow-sm">
+    <header className="bg-gradient-to-b from-primaryCustom-100 to-primaryCustom-300 shadow-sm border-b border-gray-300">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -47,7 +47,7 @@ function BaseHeader() {
               >
                 <path
                   d="M16 32C24.8366 32 32 24.8366 32 16C32 7.16344 24.8366 0 16 0C7.16344 0 0 7.16344 0 16C0 24.8366 7.16344 32 16 32Z"
-                  fill="#3d52a0"
+                  fill="#800000"
                 />
                 <path
                   d="M19.0765 10.8926L16.0971 7.99999L7 14.2077L10.0077 16.9908L19.0765 10.8926Z"
@@ -227,7 +227,7 @@ function BaseHeader() {
             {!isLoggedIn() && pathname !== "/login/" && (
               <Link
                 href="/login/"
-                className="px-4 py-2 text-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-600 hover:text-white transition-colors text-sm font-medium"
+                className="px-4 py-2 text-buttonsCustom-600 border border-buttonsCustom-600 rounded-lg hover:bg-buttonsCustom-600 hover:text-white transition-colors text-sm font-medium"
               >
                 Login
               </Link>
@@ -235,11 +235,12 @@ function BaseHeader() {
             {!isLoggedIn() && pathname !== "/register/" && (
               <Link
                 href="/register/"
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-buttonsCustom-600 text-white rounded-lg hover:bg-buttonsCustom-700 transition-colors text-sm font-medium"
               >
                 Register
               </Link>
             )}
+            {isLoggedIn() && pathname !== "/register/" && (
             <Link
               href="/cart/"
               className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium flex items-center"
@@ -259,6 +260,15 @@ function BaseHeader() {
                 />
               </svg>
             </Link>
+             )}
+             {isLoggedIn() && pathname !== "/logout/" && (
+              <Link
+                href="/logout/"
+                className="px-4 py-2 bg-buttonsCustom-900 text-white rounded-lg hover:bg-buttonsCustom-800 transition-colors text-sm font-medium"
+              >
+                Logout
+              </Link>
+            )}
           </div>
         </div>
 

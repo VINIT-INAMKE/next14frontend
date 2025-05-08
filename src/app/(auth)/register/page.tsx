@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useAuthStore } from "@/store/auth";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+
+import { LockClosedIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 
 function Register() {
   const [fullname, setFullname] = useState("");
@@ -29,7 +30,13 @@ function Register() {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await register(fullname, email, password, password2, wallet_address);
+    const { error } = await register(
+      fullname,
+      email,
+      password,
+      password2,
+      wallet_address
+    );
     if (error) {
       alert(JSON.stringify(error));
     } else {
@@ -39,159 +46,154 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-blue-50 to-white py-8 px-4 sm:px-6 lg:px-8">
-      <motion.div
-        className="w-full max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col lg:flex-row"
+    <div className="min-h-screen bg-gradient-to-b from-primaryCustom-300 to-primaryCustom-900">
+      <motion.main
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex-1 flex items-center justify-center p-4"
       >
-        {/* Illustration Section */}
-        <div className="hidden lg:block relative w-full lg:w-1/2 bg-blue-50">
-          <div className="absolute inset-0 flex items-center justify-center p-6 sm:p-8 lg:p-12">
-            <Image
-              src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/authentication/illustration.svg"
-              alt="Registration illustration"
-              width={500}
-              height={500}
-              className="w-full h-full object-contain"
-              priority
-            />
-          </div>
-        </div>
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-xl shadow-lg border border-blue-200 overflow-hidden">
+            {/* Gradient Header Strip */}
+            <div className="h-2 bg-gradient-to-r from-buttonsCustom-900 to-buttonsCustom-700" />
 
-        {/* Form Section */}
-        <div className="flex-1 p-6 sm:p-8 lg:p-12">
-          <div className="w-full max-w-md mx-auto">
-            {/* Logo and Title */}
-            <div className="mb-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
-                  <span className="text-white text-xl font-bold">L</span>
+            <div className="p-8 space-y-6">
+              <div className="text-center space-y-2">
+                <LockClosedIcon className="h-8 w-8 text-buttonsCustom-900 mx-auto" />
+                <h1 className="text-2xl font-bold text-buttonsCustom-900">
+                  Decentralized Learning Portal
+                </h1>
+                <p className="text-buttonsCustom-700">
+                  Secure access to your blockchain-based learning resources
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-buttonsCustom-900   mb-2">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    value={fullname}
+                    onChange={(e) => setFullname(e.target.value)}
+                    className="w-full bg-buttonsCustom-50 border border-buttonsCustom-700 rounded-lg px-4 py-3 
+                              placeholder-buttonsCustom-600 focus:ring-2 focus:ring-buttonsCustom-700 focus:outline-none"
+                    placeholder="learner@decentralized.edu"
+                  />
                 </div>
-                <span className="text-gray-900 text-2xl font-bold">LMS</span>
-              </div>
-              <h2 className="text-3xl font-bold text-gray-900">
-                Create Account
-              </h2>
-              <p className="mt-3 text-gray-600">
-                Already have an account?{" "}
-                <Link
-                  href="/login"
-                  className="text-blue-600 hover:text-blue-500 font-medium"
+                <div>
+                  <label className="block text-sm font-medium text-buttonsCustom-900   mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-buttonsCustom-50 border border-buttonsCustom-700 rounded-lg px-4 py-3 
+                              placeholder-buttonsCustom-600 focus:ring-2 focus:ring-buttonsCustom-700 focus:outline-none"
+                    placeholder="learner@decentralized.edu"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-buttonsCustom-900   mb-2">
+                    Cardano Wallet Address
+                  </label>
+                  <input
+                    type="text"
+                    value={wallet_address}
+                    onChange={(e) => setWallet_Address(e.target.value)}
+                    className="w-full bg-buttonsCustom-50 border border-buttonsCustom-700 rounded-lg px-4 py-3 
+                              placeholder-buttonsCustom-600 focus:ring-2 focus:ring-buttonsCustom-700 focus:outline-none"
+                    placeholder="addr1q9..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-buttonsCustom-900 mb-2">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-buttonsCustom-50 border border-buttonsCustom-700 rounded-lg px-4 py-3 
+                              placeholder-buttonsCustom-600 focus:ring-2 focus:ring-buttonsCustom-700 focus:outline-none"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-buttonsCustom-900 mb-2">
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    value={password2}
+                    onChange={(e) => setPassword2(e.target.value)}
+                    className="w-full bg-buttonsCustom-50 border border-buttonsCustom-700 rounded-lg px-4 py-3 
+                              placeholder-buttonsCustom-600 focus:ring-2 focus:ring-buttonsCustom-700 focus:outline-none"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-buttonsCustom-900 to-buttonsCustom-700 text-white 
+                            font-medium rounded-lg shadow-md p-3 transition-all duration-300 
+                            hover:from-buttonsCustom-900 hover:to-buttonsCustom-700 relative"
                 >
-                  Sign in
-                </Link>
-              </p>
-            </div>
+                  {isLoading ? (
+                    <ArrowPathIcon className="h-5 w-5 animate-spin mx-auto" />
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <LockClosedIcon className="h-5 w-5" />
+                      <span>Register with DID</span>
+                    </div>
+                  )}
+                </motion.button>
+              </form>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label
-                  htmlFor="fullname"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Full Name
-                </label>
-                <input
-                  id="fullname"
-                  name="fullname"
-                  type="text"
-                  required
-                  value={fullname}
-                  onChange={(e) => setFullname(e.target.value)}
-                  className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="John Doe"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Email
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="name@company.com"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="wallet_address"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                 Cardano Wallet Address
-                </label>
-                <input
-                  id="wallet_address"
-                  name="wallet_address"
-                  type="text"
-                  value={wallet_address}
-                  onChange={(e) => setWallet_Address(e.target.value)}
-                  className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="addr1q9..."
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="••••••••"
-                />
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-buttonsCustom-800" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="bg-white px-2 text-buttonsCustom-800">
+                    Alternative access methods
+                  </span>
+                </div>
               </div>
 
-              <div>
-                <label
-                  htmlFor="password2"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Confirm Password
-                </label>
-                <input
-                  id="password2"
-                  name="password2"
-                  type="password"
-                  required
-                  value={password2}
-                  onChange={(e) => setPassword2(e.target.value)}
-                  className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  placeholder="••••••••"
-                />
-              </div>
-
-              {password2 !== password && (
-                <p className="text-sm text-red-600">Passwords do not match</p>
-              )}
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full flex items-center justify-center gap-3 bg-buttonsCustom-50 text-buttonsCustom-900 
+                          rounded-lg p-3 border border-buttonsCustom-200 hover:bg-buttonsCustom-50 transition-colors"
               >
-                {isLoading ? "Creating account..." : "Create account"}
-              </button>
-            </form>
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path
+                    d="M12.24 10.285V14.4h6.806c-.275 1.765-2.056 5.174-6.806 5.174-4.095 0-7.439-3.389-7.439-7.574s3.345-7.574 7.439-7.574c2.33 0 3.891.989 4.785 1.849l3.254-3.138C18.189 1.186 15.479 0 12.24 0c-6.635 0-12 5.365-12 12s5.365 12 12 12c6.926 0 11.52-4.869 11.52-11.726 0-.788-.085-1.39-.189-1.989H12.24z"
+                    fill="currentColor"
+                  />
+                </svg>
+                <span>Continue with Google</span>
+              </motion.button>
+            </div>
           </div>
+
+          <p className="mt-4 text-center text-buttonsCustom-900">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="font-medium hover:text-buttonsCustom-400 transition-colors duration-300"
+            >
+              Login to your account
+            </Link>
+          </p>
         </div>
-      </motion.div>
+      </motion.main>
     </div>
   );
 }
