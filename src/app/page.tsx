@@ -202,7 +202,7 @@ export default function Home() {
           viewport={{ once: true }}
           className="mb-16"
         >
-          <h2 className="text-3xl font-bold mb-8 text-center text-white">Popular Blockchain Topics</h2>
+          <h2 className="text-3xl font-bold mb-8 text-center text-buttonsCustom-500">Popular Blockchain Topics</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { name: 'Smart Contracts', icon: <Rocket className="h-6 w-6 text-buttonsCustom-600" /> },
@@ -234,7 +234,7 @@ export default function Home() {
           viewport={{ once: true }}
           className="mb-16"
         >
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 text-white">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 text-buttonsCustom-500">
             Featured Courses
           </h1>
 

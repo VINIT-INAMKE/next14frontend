@@ -7,7 +7,7 @@ import MainWrapper from "@/components/MainWrapper";
 import { Toaster } from 'react-hot-toast';
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-
+// import Script from "next/script";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -41,6 +41,10 @@ export default function RootLayout({
         <Toaster position="top-right" />
         <MainWrapper>
         <Header />
+        {/* <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="afterInteractive"
+        /> */}
         <div className="h-16"></div>
           {children}
           <Footer />

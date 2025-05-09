@@ -5,7 +5,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import apiInstance from "@/utils/axios";
 import Swal from "sweetalert2";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
 
 function CreatePassword() {
   const [password, setPassword] = useState("");
@@ -93,24 +92,7 @@ function CreatePassword() {
         className="w-full max-w-4xl bg-white/90 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden border border-white/20 flex flex-col lg:flex-row"
       >
         {/* Illustration Section */}
-        <div className="hidden lg:flex relative w-full lg:w-1/2 bg-gradient-to-br from-buttonsCustom-50 to-buttonsCustom-100">
-          <div className="absolute inset-0 flex items-center justify-center p-8">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Image
-                src="https://illustrations.popsy.co/amber/resetting-password.svg"
-                alt="Password reset illustration"
-                width={500}
-                height={500}
-                className="w-full h-full object-contain"
-                priority
-              />
-            </motion.div>
-          </div>
-        </div>
+       
 
         {/* Form Section */}
         <div className="flex-1 p-8 sm:p-10">
