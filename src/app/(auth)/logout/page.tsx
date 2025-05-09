@@ -29,66 +29,85 @@ const Logout = () => {
   }, [router, progressControls]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primaryCustom-300 to-primaryCustom-900 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primaryCustom-300 to-primaryCustom-700 p-4">
       <motion.div
-        className="w-full max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col lg:flex-row"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-xl shadow-2xl overflow-hidden border border-white/20"
       >
-        {/* Content Section */}
-        <div className="flex-1 p-6 sm:p-8 lg:p-12">
-          <div className="w-full max-w-md mx-auto">
-            {/* Progress Bar */}
-            <div className="w-full h-2 bg-gray-200 rounded-full mb-6">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={progressControls}
-                className="h-full bg-blue-600 rounded-full"
-              />
-            </div>
-
-            {/* Success Icon */}
-            <div className="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-green-100 mb-8">
-              <motion.svg
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 260,
-                  damping: 20,
-                  delay: 0.1,
-                }}
-                className="h-12 w-12 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </motion.svg>
-            </div>
-
-            {/* Message */}
+        <div className="p-8">
+          {/* Progress bar */}
+          <div className="w-full h-1.5 bg-gray-100 rounded-full mb-8 overflow-hidden">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-center"
-            >
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Successfully Logged Out
-              </h2>
-              <p className="text-gray-600 mb-2">
-                Thank you for using our service. We hope to see you again soon!
-              </p>
-            </motion.div>
+              initial={{ width: 0 }}
+              animate={progressControls}
+              className="h-full bg-buttonsCustom-600 rounded-full"
+            />
           </div>
+
+          {/* Animated checkmark */}
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{
+              type: "spring",
+              stiffness: 260,
+              damping: 20,
+              delay: 0.1,
+            }}
+            className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-buttonsCustom-100 mb-8"
+          >
+            <svg
+              className="h-10 w-10 text-buttonsCustom-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </motion.div>
+
+          {/* Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-center"
+          >
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Logged Out Successfully
+            </h2>
+            <p className="text-gray-600 mb-6">
+              `You&aposve been securely logged out. Redirecting in{" "}
+              {REDIRECT_DELAY} seconds...`
+            </p>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => router.push("/login")}
+              className="w-full py-3 px-4 bg-buttonsCustom-800 hover:bg-buttonsCustom-600 text-white font-medium rounded-lg transition-colors shadow-sm"
+            >
+              Return to Login Now
+            </motion.button>
+          </motion.div>
         </div>
 
-        {/* Illustration Section */}
-
+        {/* Footer */}
+        <div className="bg-gray-50/50 px-6 py-4 text-center">
+          <p className="text-xs text-gray-500">
+            Need help?
+            <a href="#" className="text-buttonsCustom-600 hover:underline">
+              Contact support
+            </a>
+          </p>
+        </div>
       </motion.div>
     </div>
   );

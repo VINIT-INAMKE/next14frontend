@@ -41,6 +41,7 @@ export default function RootLayout({
         <Toaster position="top-right" />
         <MainWrapper>
         <Header />
+        <div className="h-16"></div>
           {children}
           <Footer />
         </MainWrapper>
