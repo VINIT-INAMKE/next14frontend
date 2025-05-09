@@ -21,7 +21,6 @@ interface RazorpayOptions {
   prefill?: {
     name?: string;
     email?: string;
-    contact?: string;
   };
 }
 
@@ -196,55 +195,61 @@ export default function Checkout() {
   //       form.submit();
   //     }
   //   };
- const initiateRazorpay = async () => {
-  if (!order) return;
+  const initiateRazorpay = async () => {
+    if (!order) return;
 
-  setPaymentLoading(true);
+    setPaymentLoading(true);
 
-  try {
-    const response = await apiInstance.get(`/order/razorpay/${order.oid}/`);
-    const checkoutData = response.data; // already contains all Razorpay options from backend
+    try {
+      const response = await apiInstance.get(
+        `/payment/razorpay-checkout/${order.oid}/`
+      );
+      const checkoutData = response.data;
 
-    // Define RazorpayResponse type
-    interface RazorpayResponse {
-      razorpay_order_id: string;
-      razorpay_payment_id: string;
-      razorpay_signature: string;
+      // Define RazorpayResponse type
+      interface RazorpayResponse {
+        razorpay_order_id: string;
+        razorpay_payment_id: string;
+        razorpay_signature: string;
+      }
+
+      // Inject handler into backend-sent data
+      const options = {
+        ...checkoutData,
+        handler: async function (response: RazorpayResponse) {
+          // Use the defined RazorpayResponse type
+          const verifyData = {
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            order_oid: order.oid,
+          };
+
+          try {
+            await apiInstance.post(`/payment/payment-success/`, verifyData);
+            Toast().fire({ icon: "success", title: "Payment Successful!" });
+            fetchOrder(); // refresh updated order
+          } catch (err) {
+            console.error("Verification failed", err);
+            Toast().fire({
+              icon: "error",
+              title: "Payment verification failed",
+            });
+          } finally {
+            setPaymentLoading(false);
+          }
+        },
+      };
+
+      // Now Razorpay is properly recognized on window object
+      const rzp = new window.Razorpay(options); // Use window.Razorpay instead of (window as any).Razorpay
+      rzp.open();
+    } catch (err) {
+      console.error(err);
+      Toast().fire({ icon: "error", title: "Unable to initiate Razorpay" });
+      setPaymentLoading(false);
     }
-
-    // Inject handler into backend-sent data
-    const options = {
-      ...checkoutData,
-      handler: async function (response: RazorpayResponse) { // Use the defined RazorpayResponse type
-        const verifyData = {
-          razorpay_order_id: response.razorpay_order_id,
-          razorpay_payment_id: response.razorpay_payment_id,
-          razorpay_signature: response.razorpay_signature,
-          order_oid: order.oid,
-        };
-
-        try {
-          await apiInstance.post(`/order/razorpay/verify/`, verifyData);
-          Toast().fire({ icon: "success", title: "Payment Successful!" });
-          fetchOrder(); // refresh updated order
-        } catch (err) {
-          console.error("Verification failed", err);
-          Toast().fire({ icon: "error", title: "Payment verification failed" });
-        } finally {
-          setPaymentLoading(false);
-        }
-      },
-    };
-
-    // Now Razorpay is properly recognized on window object
-    const rzp = new window.Razorpay(options); // Use window.Razorpay instead of (window as any).Razorpay
-    rzp.open();
-  } catch (err) {
-    console.error(err);
-    Toast().fire({ icon: "error", title: "Unable to initiate Razorpay" });
-    setPaymentLoading(false);
-  }
-};
+  };
 
   if (!order) {
     return (
