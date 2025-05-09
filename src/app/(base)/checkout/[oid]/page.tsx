@@ -201,7 +201,7 @@ export default function Checkout() {
     setPaymentLoading(true);
 
     try {
-      const response = await apiInstance.get(
+      const response = await apiInstance.post(
         `/payment/razorpay-checkout/${order.oid}/`
       );
       const checkoutData = response.data;
