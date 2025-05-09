@@ -23,7 +23,7 @@ import {
   Lock,
   FileText,
   BookOpen,
-  BarChart2,
+  BarChart2, 
   Globe,
   Calendar,
   Users,
@@ -88,7 +88,6 @@ function CourseDetail(): React.ReactElement {
 
   const params = useParams();
   const slug = params?.slug as string;
-  const { country } = GetCurrentAddress(); 
   const userId = UserData()?.user_id || 0;
 
   const fetchCourse = useCallback(async (): Promise<void> => {
@@ -113,17 +112,18 @@ function CourseDetail(): React.ReactElement {
     courseId: number,
     userId: number,
     price: number,
-    country: string,
     cartId: string
   ): Promise<void> => {
     setAddToCartBtn("Adding To Cart");
-    const formdata = new FormData();
-    formdata.append("course_id", courseId.toString());
-    formdata.append("user_id", userId.toString());
-    formdata.append("price", price.toString());
-    formdata.append("country_name", country);
-    formdata.append("cart_id", cartId);
     try {
+      const country = await GetCurrentAddress();
+      const formdata = new FormData();
+      formdata.append("course_id", courseId.toString());
+      formdata.append("user_id", userId.toString());
+      formdata.append("price", price.toString());
+      formdata.append("country_name", country);
+      formdata.append("cart_id", cartId);
+      
       await useAxios.post(`course/cart/`, formdata);
       setAddToCartBtn("Added To Cart");
       Toast().fire({ title: "Added To Cart", icon: "success" });
@@ -664,7 +664,6 @@ function CourseDetail(): React.ReactElement {
                               course.id,
                               userId,
                               course.price,
-                              country,
                               CartId() || ""
                             )
                           }
@@ -684,7 +683,6 @@ function CourseDetail(): React.ReactElement {
                               course.id,
                               userId,
                               course.price,
-                              country,
                               CartId() || ""
                             )
                           }

@@ -1,41 +1,63 @@
-import { useState, useEffect } from "react";
+const getLocationByIP = async (): Promise<string> => {
+  try {
+    const response = await fetch("https://ipapi.co/json/");
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.reason || "Failed to get location from IP");
+    }
+    return data.country_name || "Unknown";
+  } catch (error) {
+    console.error("IP Geolocation error:", error);
+    return "Unknown";
+  }
+};
 
-const GetCurrentAddress = (): { country: string; loading: boolean; error: string } => {
-  const [country, setCountry] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
-
-  useEffect(() => {
-    if (typeof window === "undefined") return; 
+const getLocationByGPS = (): Promise<string> => {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(getLocationByIP());
+      return;
+    }
 
     navigator.geolocation.getCurrentPosition(
-      (pos: GeolocationPosition) => {
-        const { latitude, longitude } = pos.coords;
+      async (pos: GeolocationPosition) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
+          
+          const response = await fetch(url);
+          const data = await response.json();
+          
+          if (!data.address?.country) {
+            throw new Error("Country not found in response");
+          }
 
-        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
-
-        fetch(url)
-          .then((res) => res.json())
-          .then((data) => {
-            const countryName = data.address?.country || "Unknown";
-            setCountry(countryName);
-            setLoading(false);
-          })
-          .catch((err) => {
-            console.error("Error fetching location:", err);
-            setError("Failed to fetch country");
-            setLoading(false);
-          });
+          resolve(data.address.country);
+        } catch (error) {
+          console.error("Reverse geocoding error:", error);
+          // Fallback to IP-based geolocation
+          const country = await getLocationByIP();
+          resolve(country);
+        }
       },
-      (err) => {
-        console.error("Geolocation error:", err);
-        setError("Permission denied");
-        setLoading(false);
+      async (error: GeolocationPositionError) => {
+        console.error("Geolocation error:", error);
+        // Fallback to IP-based geolocation
+        const country = await getLocationByIP();
+        resolve(country);
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 5000,
+        maximumAge: 0,
       }
     );
-  }, []);
+  });
+};
 
-  return { country, loading, error };
+const GetCurrentAddress = async (): Promise<string> => {
+  if (typeof window === "undefined") return "Unknown";
+  return getLocationByGPS();
 };
 
 export default GetCurrentAddress;
