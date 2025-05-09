@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useCart } from "@/providers/CartProvider";
 import {
   Trash2,
   ArrowRight,
@@ -55,6 +56,7 @@ const Cart = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartStats, setCartStats] = useState<CartStats>({});
   const [loading, setLoading] = useState(true);
+  const { refreshCart } = useCart();
   const [bioData, setBioData] = useState<BioData>({
     full_name: "",
     email: "",
@@ -70,6 +72,7 @@ const Cart = () => {
       ]);
       setCart(cartRes.data);
       setCartStats(statsRes.data);
+      await refreshCart();
     } catch (error) {
       console.error("Error fetching cart:", error);
     } finally {
@@ -83,6 +86,7 @@ const Cart = () => {
         `course/cart-item-delete/${CartId()}/${itemId}/`
       );
       setCart((prev) => prev.filter((item) => item.id !== itemId));
+      await fetchCartItems();
       Toast().fire({ title: "Removed From Cart", icon: "success" });
     } catch (error) {
       console.error("Error removing item:", error);

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtDecode } from "jwt-decode";
 
-const publicPaths = ["/login", "/register", "/forgotpassword", "/create-new-password"];
+const publicPaths = ["/", "/login", "/register", "/forgotpassword", "/create-new-password"];
 
 interface DecodedToken {
   token_type: string;
@@ -38,11 +38,13 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  if (isPublicPath && token) {
-    return NextResponse.redirect(new URL("/", request.url));
+  // Allow access to public paths regardless of authentication
+  if (isPublicPath) {
+    return NextResponse.next();
   }
 
-  if (!isPublicPath && !token) {
+  // Require authentication for non-public paths
+  if (!token) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);

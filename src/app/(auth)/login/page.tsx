@@ -25,6 +25,7 @@ const Login = () => {
         setError(error);
       } else {
         await router.push("/");
+        window.location.reload();
       }
     } catch (err) {
       setError("An unexpected error occurred");

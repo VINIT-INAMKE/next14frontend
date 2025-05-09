@@ -50,6 +50,7 @@ function Register() {
         setError(typeof error === 'string' ? error : JSON.stringify(error));
       } else {
         await router.push("/");
+        window.location.reload();
       }
     } catch (err) {
       setError("An unexpected error occurred");

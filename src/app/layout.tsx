@@ -1,5 +1,3 @@
-
-
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -7,6 +5,7 @@ import MainWrapper from "@/components/MainWrapper";
 import { Toaster } from 'react-hot-toast';
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
+import { CartProvider } from "@/providers/CartProvider";
 // import Script from "next/script";
 
 const geistSans = localFont({
@@ -30,25 +29,24 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
-
-
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Toaster position="top-right" />
-        <MainWrapper>
-        <Header />
-        {/* <Script
-          src="https://checkout.razorpay.com/v1/checkout.js"
-          strategy="afterInteractive"
-        /> */}
-        <div className="h-16"></div>
-          {children}
-          <Footer />
-        </MainWrapper>
+        <CartProvider>
+          <MainWrapper>
+            <Header />
+            {/* <Script
+              src="https://checkout.razorpay.com/v1/checkout.js"
+              strategy="afterInteractive"
+            /> */}
+            <div className="h-16"></div>
+            {children}
+            <Footer />
+          </MainWrapper>
+        </CartProvider>
       </body>
     </html>
   );
