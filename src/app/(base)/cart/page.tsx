@@ -278,7 +278,7 @@ const Cart = () => {
                               {item.course.title}
                             </h3>
                             <Badge variant="outline" className="mt-2 border-buttonsCustom-300 text-buttonsCustom-700">
-                              ${item.price}
+                              ₹ {item.price}
                             </Badge>
                           </div>
                         </div>
@@ -308,20 +308,20 @@ const Cart = () => {
                   <div className="flex justify-between text-buttonsCustom-800">
                     <span>Subtotal:</span>
                     <span className="font-medium">
-                      ${cartStats.price?.toFixed(2)}
+                      ₹ {cartStats.price?.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between text-buttonsCustom-800">
                     <span>Tax:</span>
                     <span className="font-medium">
-                      ${cartStats.tax?.toFixed(2)}
+                    ₹ {cartStats.tax?.toFixed(2)}
                     </span>
                   </div>
                   <Separator className="my-4 bg-buttonsCustom-200" />
                   <div className="flex justify-between font-semibold text-buttonsCustom-900">
                     <span>Total:</span>
                     <span className="text-buttonsCustom-700">
-                      ${cartStats.total?.toFixed(2)}
+                    ₹ {cartStats.total?.toFixed(2)}
                     </span>
                   </div>
                 </CardContent>

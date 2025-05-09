@@ -272,7 +272,7 @@ export default function Home() {
                             {course.level}
                           </Badge>
                           <span className="text-sm font-semibold text-buttonsCustom-900">
-                            ₹{course.price}
+                            ₹ {course.price}
                           </span>
                         </div>
                         <CardTitle className="text-lg sm:text-xl text-buttonsCustom-900">
@@ -354,7 +354,7 @@ export default function Home() {
                                   {course.level}
                                 </Badge>
                                 <span className="text-sm font-semibold text-buttonsCustom-900">
-                                  ₹{course.price}
+                                  ₹ {course.price}
                                 </span>
                               </div>
                               <CardTitle className="text-lg sm:text-xl text-buttonsCustom-900">

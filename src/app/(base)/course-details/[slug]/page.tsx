@@ -645,10 +645,10 @@ function CourseDetail(): React.ReactElement {
                   <div className="flex justify-between items-center mb-6">
                     <div className="flex items-end gap-2">
                       <span className="text-3xl font-bold text-buttonsCustom-900">
-                        ${course.price}
+                      ₹ {course.price}
                       </span>
                       <span className="text-lg text-buttonsCustom-400 line-through">
-                        $1700
+                      ₹ 1700
                       </span>
                     </div>
                     

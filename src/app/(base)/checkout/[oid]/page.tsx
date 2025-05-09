@@ -131,7 +131,6 @@ export default function Checkout() {
   const [coupon, setCoupon] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
 
-
   const params = useParams();
 
   const fetchOrder = async () => {
@@ -218,13 +217,13 @@ export default function Checkout() {
       const options = {
         ...checkoutData,
         prefill: {
-          name: order.full_name || order.student.full_name || '',
-          email: order.email || order.student.email || '',
+          name: order.full_name || order.student.full_name || "",
+          email: order.email || order.student.email || "",
         },
         theme: {
-          color: '#FFCCCC', // Primary color for buttons and other elements
-          backdrop_color: '#ffffff', // Background color
-          hide_topbar: false // Show/hide the top bar
+          color: "#FFCCCC", // Primary color for buttons and other elements
+          backdrop_color: "#ffffff", // Background color
+          hide_topbar: false, // Show/hide the top bar
         },
         modal: {
           confirm_close: true, // Confirm before closing the window
@@ -233,7 +232,7 @@ export default function Checkout() {
         },
         notes: {
           order_id: order.oid,
-          customer_name: order.full_name || order.student.full_name || '',
+          customer_name: order.full_name || order.student.full_name || "",
         },
         handler: async function (response: RazorpayResponse) {
           // Use the defined RazorpayResponse type
@@ -403,11 +402,11 @@ export default function Checkout() {
                           <td className="py-4 text-right">
                             <div className="flex flex-col items-end">
                               <span className="text-lg font-semibold text-green-600">
-                                ${parseFloat(item.price).toFixed(2)}
+                                ₹ {parseFloat(item.price).toFixed(2)}
                               </span>
                               {parseFloat(item.saved) > 0 && (
                                 <span className="text-sm text-green-500">
-                                  Saved ${parseFloat(item.saved).toFixed(2)}
+                                  Saved ₹ {parseFloat(item.saved).toFixed(2)}
                                 </span>
                               )}
                             </div>
@@ -542,7 +541,7 @@ export default function Checkout() {
                             {coupon.code}
                           </span>
                           <span className="text-sm font-bold text-green-600">
-                            -${coupon.discount}
+                            -{coupon.discount}%
                           </span>
                         </div>
                       ))}
@@ -556,31 +555,31 @@ export default function Checkout() {
                     <li className="flex justify-between items-center">
                       <span className="text-gray-600">Sub Total</span>
                       <span className="text-gray-800">
-                        ${parseFloat(order.sub_total).toFixed(2)}
+                      ₹ {parseFloat(order.sub_total).toFixed(2)}
                       </span>
                     </li>
                     <li className="flex justify-between items-center">
                       <span className="text-gray-600">Discount</span>
                       <span className="text-green-600">
-                        -${parseFloat(order.saved).toFixed(2)}
+                        -₹ {parseFloat(order.saved).toFixed(2)}
                       </span>
                     </li>
                     <li className="flex justify-between items-center">
                       <span className="text-gray-600">Tax</span>
                       <span className="text-gray-800">
-                        ${parseFloat(order.tax_fee).toFixed(2)}
+                      ₹ {parseFloat(order.tax_fee).toFixed(2)}
                       </span>
                     </li>
                     <li className="flex justify-between items-center font-bold pt-2 border-t border-gray-200">
                       <span className="text-gray-800">Total</span>
                       <span className="text-lg text-buttonsCustom-700">
-                        ${parseFloat(order.total).toFixed(2)}
+                      ₹ {parseFloat(order.total).toFixed(2)}
                       </span>
                     </li>
                     {parseFloat(order.saved) > 0 && (
                       <li className="flex justify-between items-center text-sm text-green-600">
                         <span>You saved</span>
-                        <span>${parseFloat(order.saved).toFixed(2)}</span>
+                        <span>₹ {parseFloat(order.saved).toFixed(2)}</span>
                       </li>
                     )}
                   </ul>
