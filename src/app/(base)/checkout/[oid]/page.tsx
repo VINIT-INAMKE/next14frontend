@@ -216,6 +216,24 @@ export default function Checkout() {
       // Inject handler into backend-sent data
       const options = {
         ...checkoutData,
+        prefill: {
+          name: order.full_name || order.student.full_name || '',
+          email: order.email || order.student.email || '',
+        },
+        theme: {
+          color: '#FFCCCC', // Primary color for buttons and other elements
+          backdrop_color: '#ffffff', // Background color
+          hide_topbar: false // Show/hide the top bar
+        },
+        modal: {
+          confirm_close: true, // Confirm before closing the window
+          escape: true, // Allow closing with Esc key
+          animation: true, // Enable animations
+        },
+        notes: {
+          order_id: order.oid,
+          customer_name: order.full_name || order.student.full_name || '',
+        },
         handler: async function (response: RazorpayResponse) {
           // Use the defined RazorpayResponse type
           const verifyData = {
