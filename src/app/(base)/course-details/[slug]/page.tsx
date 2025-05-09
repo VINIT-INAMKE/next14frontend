@@ -267,7 +267,7 @@ function CourseDetail(): React.ReactElement {
                             <div className="flex items-center gap-1">
                               <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
                               <span className="font-medium text-buttonsCustom-900">
-                                {course.average_rating?.toFixed(1) ?? 'N/A'}/5
+                                {course.average_rating?.toFixed(1) ?? '0'}/5
                               </span>
                             </div>
                           </div>
