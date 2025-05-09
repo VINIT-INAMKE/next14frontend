@@ -413,9 +413,9 @@ export default function Home() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="bg-buttonsCustom-50/20 backdrop-blur-sm rounded-xl shadow-sm p-8 mb-16 border border-buttonsCustom-200/30"
+          className="bg-white/90 backdrop-blur-sm rounded-xl shadow-sm p-8 mb-16 border border-buttonsCustom-200/30"
         >
-          <h2 className="text-3xl font-bold mb-8 text-white">Structured Learning Paths</h2>
+          <h2 className="text-3xl font-bold mb-8 text-buttonsCustom-500">Structured Learning Paths</h2>
           <div className="grid md:grid-cols-2 gap-8">
             {[
               {

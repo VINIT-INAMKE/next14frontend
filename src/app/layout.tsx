@@ -22,6 +22,21 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "Starlord LMS",
   description: "Cardano Blockchain Based LMS",
+  icons: {
+    icon: [
+      {
+        url: '/favicon.svg',
+        type: 'image/svg+xml',
+      }
+    ],
+    shortcut: ['/favicon.svg'],
+    apple: [
+      {
+        url: '/favicon.svg',
+        type: 'image/svg+xml',
+      }
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -31,6 +46,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
