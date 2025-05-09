@@ -136,7 +136,7 @@ export default function Checkout() {
   const fetchOrder = async () => {
     try {
       const response = await apiInstance.get<Order>(
-        `order/checkout/${params.order_oid}/`
+        `order/checkout/${params.oid}/`
       );
       setOrder(response.data);
     } catch (error) {
