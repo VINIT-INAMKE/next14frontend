@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
 import { useCart } from "@/providers/CartProvider";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,6 +18,7 @@ function BaseHeader() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const { isLoggedIn } = useAuthStore();
   const { cartCount } = useCart();
 
@@ -28,6 +29,14 @@ function BaseHeader() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    if (query.trim()) {
+      router.push(`/search?q=${encodeURIComponent(query)}`);
+    }
+  };
 
   return (
     <header className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-lg' : 'bg-gradient-to-b from-primaryCustom-100 to-primaryCustom-300 shadow-sm'} border-b border-gray-200`}>
@@ -178,7 +187,7 @@ function BaseHeader() {
                 type="text"
                 placeholder="Search Courses..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearch}
                 className="bg-gray-50 text-gray-800 px-4 pl-10 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-buttonsCustom-300 focus:border-transparent w-64 border border-gray-200 text-sm"
               />
               <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
@@ -247,7 +256,7 @@ function BaseHeader() {
                     type="text"
                     placeholder="Search Courses..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={handleSearch}
                     className="bg-gray-50 text-gray-800 px-4 pl-10 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-buttonsCustom-300 focus:border-transparent w-full border border-gray-200 text-sm"
                   />
                   <SearchIcon className="absolute left-5 top-2.5 h-4 w-4 text-gray-400" />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface RazorpayResponse {
@@ -130,7 +130,7 @@ export default function Checkout() {
   const [order, setOrder] = useState<Order | null>(null);
   const [coupon, setCoupon] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
-
+  const router = useRouter();
   const params = useParams();
 
   const fetchOrder = async () => {
@@ -221,7 +221,7 @@ export default function Checkout() {
           email: order.email || order.student.email || "",
         },
         theme: {
-          color: "#FFCCCC", // Primary color for buttons and other elements
+          color: "#FF9999", // Primary color for buttons and other elements
           backdrop_color: "#ffffff", // Background color
           hide_topbar: false, // Show/hide the top bar
         },
@@ -233,9 +233,14 @@ export default function Checkout() {
         notes: {
           order_id: order.oid,
           customer_name: order.full_name || order.student.full_name || "",
+          customer_email: order.email || order.student.email || "",
+          date: order.date || "",
+          sub_total: order.sub_total || "",
+          tax_fee: order.tax_fee || "",
+          total: order.total || "",
+          country: order.country || "",
         },
         handler: async function (response: RazorpayResponse) {
-          // Use the defined RazorpayResponse type
           const verifyData = {
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
@@ -246,7 +251,9 @@ export default function Checkout() {
           try {
             await apiInstance.post(`/payment/payment-success/`, verifyData);
             Toast().fire({ icon: "success", title: "Payment Successful!" });
-            fetchOrder(); // refresh updated order
+            
+            // Redirect to payment success page
+            router.push(`/payment-success?order_id=${order.oid}`);
           } catch (err) {
             console.error("Verification failed", err);
             Toast().fire({
@@ -259,8 +266,7 @@ export default function Checkout() {
         },
       };
 
-      // Now Razorpay is properly recognized on window object
-      const rzp = new window.Razorpay(options); // Use window.Razorpay instead of (window as any).Razorpay
+      const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
       console.error(err);
@@ -555,7 +561,7 @@ export default function Checkout() {
                     <li className="flex justify-between items-center">
                       <span className="text-gray-600">Sub Total</span>
                       <span className="text-gray-800">
-                      ₹ {parseFloat(order.sub_total).toFixed(2)}
+                        ₹ {parseFloat(order.sub_total).toFixed(2)}
                       </span>
                     </li>
                     <li className="flex justify-between items-center">
@@ -567,13 +573,13 @@ export default function Checkout() {
                     <li className="flex justify-between items-center">
                       <span className="text-gray-600">Tax</span>
                       <span className="text-gray-800">
-                      ₹ {parseFloat(order.tax_fee).toFixed(2)}
+                        ₹ {parseFloat(order.tax_fee).toFixed(2)}
                       </span>
                     </li>
                     <li className="flex justify-between items-center font-bold pt-2 border-t border-gray-200">
                       <span className="text-gray-800">Total</span>
                       <span className="text-lg text-buttonsCustom-700">
-                      ₹ {parseFloat(order.total).toFixed(2)}
+                        ₹ {parseFloat(order.total).toFixed(2)}
                       </span>
                     </li>
                     {parseFloat(order.saved) > 0 && (
@@ -584,10 +590,7 @@ export default function Checkout() {
                     )}
                   </ul>
                   <div className="space-y-3">
-                    <form
-                      action={`http://127.0.0.1:8000/api/v1/payment/stripe-checkout/${order.oid}/`}
-                      method="POST"
-                    >
+                    <form method="POST">
                       {paymentLoading ? (
                         <button
                           type="submit"
@@ -597,7 +600,9 @@ export default function Checkout() {
                           Processing
                           <svg
                             className="animate-spin ml-2 h-4 w-4 text-white"
-                            xmlns="http://www.w3.org/2000/svg"
+                            xmlns="http
+                                :           //www.w3.org/
+                    2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
                           >
