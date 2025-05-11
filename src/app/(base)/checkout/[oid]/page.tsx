@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 interface RazorpayResponse {
   razorpay_order_id: string;
@@ -133,7 +134,7 @@ export default function Checkout() {
   const router = useRouter();
   const params = useParams();
 
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
     try {
       const response = await apiInstance.get<Order>(
         `order/checkout/${params.oid}/`
@@ -146,7 +147,7 @@ export default function Checkout() {
         title: "Failed to load order details",
       });
     }
-  };
+  }, [params.oid]);
 
   const applyCoupon = async () => {
     if (!order) return;
@@ -180,7 +181,7 @@ export default function Checkout() {
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.async = true;
     document.body.appendChild(script);
-  }, []);
+  }, [fetchOrder]);
 
   //   const initialOptions = {
   //     clientId: PAYPAL_CLIENT_ID,
@@ -388,11 +389,14 @@ export default function Checkout() {
                         <tr key={index}>
                           <td className="py-4">
                             <div className="flex flex-col md:flex-row items-start md:items-center">
-                              <div className="w-24 h-16 mb-3 md:mb-0 md:mr-4 flex-shrink-0">
-                                <img
+                              <div className="w-24 h-16 mb-3 md:mb-0 md:mr-4 flex-shrink-0 relative">
+                                <Image
                                   src={item.course.image}
                                   alt={item.course.title}
-                                  className="w-full h-full object-cover rounded"
+                                  fill
+                                  sizes="(max-width: 768px) 96px, 96px"
+                                  className="object-cover rounded"
+                                  priority={index === 0}
                                 />
                               </div>
                               <div>

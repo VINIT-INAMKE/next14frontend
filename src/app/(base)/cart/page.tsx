@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -64,7 +64,7 @@ const Cart = () => {
   });
   const userId = UserData()?.user_id || 0;
 
-  const fetchCartItems = async () => {
+  const fetchCartItems = useCallback(async () => {
     try {
       const [cartRes, statsRes] = await Promise.all([
         apiInstance.get<CartItem[]>(`course/cart-list/${CartId()}/`),
@@ -78,7 +78,7 @@ const Cart = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [refreshCart]);
 
   const handleRemoveItem = async (itemId: string) => {
     try {
@@ -144,7 +144,7 @@ const Cart = () => {
 
   useEffect(() => {
     fetchCartItems();
-  }, []);
+  }, [fetchCartItems]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primaryCustom-300 to-primaryCustom-700">

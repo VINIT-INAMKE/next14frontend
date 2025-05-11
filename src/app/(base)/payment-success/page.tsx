@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import apiInstance from "@/utils/axios";
 
 interface Course {
@@ -30,7 +31,7 @@ interface Order {
   payment_status: string;
 }
 
-export default function PaymentSuccess() {
+function PaymentSuccessContent() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
@@ -136,11 +137,16 @@ export default function PaymentSuccess() {
                   key={index}
                   className="flex items-start space-x-4 p-4 border rounded-lg"
                 >
-                  <img
-                    src={item.course.image}
-                    alt={item.course.title}
-                    className="w-24 h-24 object-cover rounded-lg"
-                  />
+                  <div className="relative w-24 h-24">
+                    <Image
+                      src={item.course.image}
+                      alt={item.course.title}
+                      fill
+                      sizes="96px"
+                      className="object-cover rounded-lg"
+                      priority={index === 0}
+                    />
+                  </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
                       {item.course.title}
@@ -182,5 +188,17 @@ export default function PaymentSuccess() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PaymentSuccess() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-primaryCustom-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-buttonsCustom-700"></div>
+      </div>
+    }>
+      <PaymentSuccessContent />
+    </Suspense>
   );
 } 

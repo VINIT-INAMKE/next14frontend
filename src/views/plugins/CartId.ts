@@ -1,5 +1,12 @@
-function CartId(): string | null {
-  const generateRandomString = (): void => {
+"use client";
+
+const CartId = (): string => {
+  // Only access localStorage in client-side environment
+  if (typeof window === 'undefined') {
+    return '';
+  }
+  
+  const generateRandomString = (): string => {
     const length: number = 6;
     const characters: string = "1234567890";
     let randomString: string = "";
@@ -10,15 +17,23 @@ function CartId(): string | null {
     }
 
     localStorage.setItem('randomString', randomString);
+    return randomString;
   };
 
-  const existingRandomString: string | null = localStorage.getItem("randomString");
-
-  if(!existingRandomString) {
-    generateRandomString();
+  // Safely access localStorage
+  try {
+    const existingRandomString: string | null = localStorage.getItem("randomString");
+    
+    if(!existingRandomString) {
+      return generateRandomString();
+    }
+    
+    return existingRandomString;
+  } catch (error) {
+    // Handle any localStorage errors
+    console.error("Error accessing localStorage:", error);
+    return '';
   }
-
-  return existingRandomString;
-}
+};
 
 export default CartId; 

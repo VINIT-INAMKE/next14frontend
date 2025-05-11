@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Star, Search as SearchIcon, ShoppingCart, ArrowRight } from "lucide-react";
@@ -32,7 +32,7 @@ interface Course {
   }[];
 }
 
-export default function Search() {
+function SearchContent() {
   const [allCourses, setAllCourses] = useState<Course[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,13 +50,24 @@ export default function Search() {
     initCountry();
   }, []);
 
+  const filterCourses = useCallback((query: string) => {
+    if (query === "") {
+      setFilteredCourses(allCourses);
+    } else {
+      const filtered = allCourses.filter((course) =>
+        course.title.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredCourses(filtered);
+    }
+  }, [allCourses]);
+
   useEffect(() => {
     const query = searchParams.get('q');
     if (query) {
       setSearchQuery(query);
       filterCourses(query);
     }
-  }, [searchParams]);
+  }, [searchParams, filterCourses]);
 
   const fetchCourse = async () => {
     setIsLoading(true);
@@ -74,17 +85,6 @@ export default function Search() {
   useEffect(() => {
     fetchCourse();
   }, []);
-
-  const filterCourses = (query: string) => {
-    if (query === "") {
-      setFilteredCourses(allCourses);
-    } else {
-      const filtered = allCourses.filter((course) =>
-        course.title.toLowerCase().includes(query.toLowerCase())
-      );
-      setFilteredCourses(filtered);
-    }
-  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -268,5 +268,17 @@ export default function Search() {
         </section>
       </div>
     </div>
+  );
+}
+
+export default function Search() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-primaryCustom-300 to-primaryCustom-500 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-buttonsCustom-500 border-t-transparent" />
+      </div>
+    }>
+      <SearchContent />
+    </Suspense>
   );
 }
