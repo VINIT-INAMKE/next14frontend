@@ -159,11 +159,11 @@ function BaseHeader() {
           <NavigationMenu className="hidden md:flex">
             <NavigationMenuList>
               <NavigationMenuItem>
-                <Link href="/pages/contact-us/" legacyBehavior passHref>
+                <Link href="/contact-us/" legacyBehavior passHref>
                   <NavigationMenuLink 
                     className={cn(
                       navigationMenuTriggerStyle(),
-                      pathname === '/pages/contact-us/' && "bg-accent text-accent-foreground"
+                      pathname === '/contact-us/' && "bg-accent text-accent-foreground"
                     )}
                   >
                     Contact
@@ -172,11 +172,11 @@ function BaseHeader() {
               </NavigationMenuItem>
 
               <NavigationMenuItem>
-                <Link href="/pages/about-us/" legacyBehavior passHref>
+                <Link href="/about-us/" legacyBehavior passHref>
                   <NavigationMenuLink 
                     className={cn(
                       navigationMenuTriggerStyle(),
-                      pathname === '/pages/about-us/' && "bg-accent text-accent-foreground"
+                      pathname === '/about-us/' && "bg-accent text-accent-foreground"
                     )}
                   >
                     About
@@ -341,10 +341,10 @@ function BaseHeader() {
                 </div>
 
                 <Link
-                  href="/pages/contact-us/"
+                  href="/contact-us/"
                   className={cn(
                     "block px-4 py-2 text-sm rounded-md transition-colors", 
-                    pathname === '/pages/contact-us/' 
+                    pathname === '/contact-us/' 
                       ? "bg-accent text-accent-foreground" 
                       : "hover:bg-accent/50"
                   )}
@@ -353,10 +353,10 @@ function BaseHeader() {
                 </Link>
                 
                 <Link
-                  href="/pages/about-us/"
+                  href="/about-us/"
                   className={cn(
                     "block px-4 py-2 text-sm rounded-md transition-colors", 
-                    pathname === '/pages/about-us/' 
+                    pathname === '/about-us/' 
                       ? "bg-accent text-accent-foreground" 
                       : "hover:bg-accent/50"
                   )}
