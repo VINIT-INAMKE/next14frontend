@@ -193,8 +193,8 @@ export default function CourseDetail() {
     }
   }, [params.enrollment_id]);
 
-  useEffect(() => {
-    fetchCourseDetail();
+    useEffect(() => {
+        fetchCourseDetail();
   }, [fetchCourseDetail]);
 
   const handleMarkLessonAsCompleted = async (variantItemId: number) => {
@@ -495,10 +495,10 @@ export default function CourseDetail() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4 md:py-6 lg:py-8">
-        <StudentHeader />
+                    <StudentHeader />
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6 lg:gap-8 mt-2 sm:mt-4 md:mt-6 lg:mt-8">
-          <StudentSidebar />
+                        <StudentSidebar />
           
           <div className="lg:col-span-3">
             <Card className="border-buttonsCustom-200">
@@ -556,14 +556,14 @@ export default function CourseDetail() {
                                       </Button>
                                       <span className="text-sm sm:text-base font-medium">
                                         {lecture.title}
-                                      </span>
-                                    </div>
+                                                                                </span>
+                                                                                            </div>
                                     <div className="flex items-center gap-2 sm:gap-4">
                                       <span className="text-xs sm:text-sm text-gray-500">
                                         {lecture.duration || "0m 0s"}
                                       </span>
-                                      <input
-                                        type="checkbox"
+                                                                                                <input
+                                                                                                    type="checkbox"
                                         className="h-3 w-3 sm:h-4 sm:w-4 rounded border-gray-300"
                                         checked={course.completed_lesson?.some(
                                           (cl) => cl.variant_item.id === lecture.id
@@ -571,16 +571,16 @@ export default function CourseDetail() {
                                         onChange={() =>
                                           handleMarkLessonAsCompleted(lecture.id)
                                         }
-                                      />
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
+                                                                                                />
+                                                                                            </div>
+                                                                                        </div>
+                                                                                ))}
+                                                                            </div>
                             </AccordionContent>
                           </AccordionItem>
-                        ))}
+                                                                ))}
                       </Accordion>
-                    </div>
+                                                            </div>
                   </TabsContent>
 
                   <TabsContent value="notes" className="mt-3 sm:mt-4">
@@ -601,8 +601,8 @@ export default function CourseDetail() {
                             <form onSubmit={(e: React.FormEvent<HTMLFormElement>) => selectedNote ? handleSubmitEditNote(e, selectedNote.id) : handleSubmitCreateNote(e)} className="space-y-3 sm:space-y-4">
                               <div className="space-y-1.5 sm:space-y-2">
                                 <label className="text-xs sm:text-sm font-medium">
-                                  Note Title
-                                </label>
+                                                                                                    Note Title
+                                                                                                </label>
                                 <Input
                                   name="title"
                                   value={createNote.title}
@@ -610,11 +610,11 @@ export default function CourseDetail() {
                                   placeholder="Enter note title"
                                   className="text-sm"
                                 />
-                              </div>
+                                                                                            </div>
                               <div className="space-y-1.5 sm:space-y-2">
                                 <label className="text-xs sm:text-sm font-medium">
-                                  Note Content
-                                </label>
+                                                                                                    Note Content
+                                                                                                </label>
                                 <Textarea
                                   name="note"
                                   value={createNote.note}
@@ -623,7 +623,7 @@ export default function CourseDetail() {
                                   rows={4}
                                   className="text-sm"
                                 />
-                              </div>
+                                                                                            </div>
                               <div className="flex justify-end gap-2">
                                 <Button
                                   type="button"
@@ -635,10 +635,10 @@ export default function CourseDetail() {
                                 </Button>
                                 <Button type="submit" size="sm">Save Note</Button>
                               </div>
-                            </form>
+                                                                                        </form>
                           </DialogContent>
                         </Dialog>
-                      </div>
+                                                                                    </div>
 
                       <div className="grid gap-2 sm:gap-3 md:gap-4">
                         {course?.note?.map((note) => (
@@ -669,12 +669,12 @@ export default function CourseDetail() {
                                   <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                                   Delete
                                 </Button>
-                              </div>
+                                                                                </div>
                             </CardContent>
                           </Card>
                         ))}
-                      </div>
-                    </div>
+                                                                            </div>
+                                                                        </div>
                   </TabsContent>
 
                   <TabsContent value="discussion" className="mt-3 sm:mt-4">
@@ -689,8 +689,8 @@ export default function CourseDetail() {
                               onChange={handleSearchQuestion}
                               className="pl-8 sm:pl-10 text-sm"
                             />
-                          </div>
-                        </div>
+                                                                </div>
+                                                            </div>
                         <Dialog open={isQuestionModalOpen} onOpenChange={setIsQuestionModalOpen}>
                           <DialogTrigger asChild>
                             <Button size="sm" className="w-full sm:w-auto">
@@ -714,7 +714,7 @@ export default function CourseDetail() {
                                   placeholder="Enter question title"
                                   className="text-sm"
                                 />
-                              </div>
+                                                        </div>
                               <div className="space-y-1.5 sm:space-y-2">
                                 <label className="text-xs sm:text-sm font-medium">
                                   Question Details
@@ -727,7 +727,7 @@ export default function CourseDetail() {
                                   rows={4}
                                   className="text-sm"
                                 />
-                              </div>
+                                                                            </div>
                               <div className="flex justify-end gap-2">
                                 <Button
                                   type="button"
@@ -738,11 +738,11 @@ export default function CourseDetail() {
                                   Cancel
                                 </Button>
                                 <Button type="submit" size="sm">Send Question</Button>
-                              </div>
-                            </form>
+                                                                        </div>
+                                                                    </form>
                           </DialogContent>
                         </Dialog>
-                      </div>
+                                                                </div>
 
                       <div className="space-y-2 sm:space-y-3">
                         {questions?.map((question) => (
@@ -757,8 +757,8 @@ export default function CourseDetail() {
                                   <p className="text-xs sm:text-sm text-gray-500">
                                     {moment(question.date).format("DD MMM, YYYY")}
                                   </p>
-                                </div>
-                              </div>
+                                                                                        </div>
+                                                                                    </div>
                               <h4 className="text-sm sm:text-base font-medium mb-2">{question.title}</h4>
                               <Button
                                 variant="outline"
@@ -774,9 +774,9 @@ export default function CourseDetail() {
                               </Button>
                             </CardContent>
                           </Card>
-                        ))}
-                      </div>
-                    </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
                   </TabsContent>
 
                   <TabsContent value="review" className="mt-3 sm:mt-4">
@@ -807,7 +807,7 @@ export default function CourseDetail() {
                                 <SelectItem value="5" className="text-sm">★★★★★ (5/5)</SelectItem>
                               </SelectContent>
                             </Select>
-                          </div>
+                                                            </div>
                           <div className="space-y-1.5 sm:space-y-2">
                             <label className="text-xs sm:text-sm font-medium">Review</label>
                             <Textarea
@@ -818,9 +818,9 @@ export default function CourseDetail() {
                               rows={4}
                               className="text-sm"
                             />
-                          </div>
+                                                        </div>
                           <Button type="submit" size="sm">Post Review</Button>
-                        </form>
+                                                                            </form>
                       ) : (
                         <form onSubmit={handleUpdateReviewSubmit} className="space-y-3 sm:space-y-4">
                           <div className="space-y-1.5 sm:space-y-2">
@@ -846,7 +846,7 @@ export default function CourseDetail() {
                                 <SelectItem value="5" className="text-sm">★★★★★ (5/5)</SelectItem>
                               </SelectContent>
                             </Select>
-                          </div>
+                                                                                </div>
                           <div className="space-y-1.5 sm:space-y-2">
                             <label className="text-xs sm:text-sm font-medium">Review</label>
                             <Textarea
@@ -857,18 +857,18 @@ export default function CourseDetail() {
                               rows={4}
                               className="text-sm"
                             />
-                          </div>
+                                                                                </div>
                           <Button type="submit" size="sm">Update Review</Button>
-                        </form>
-                      )}
-                    </div>
+                                                                            </form>
+                                                                        )}
+                                                                    </div>
                   </TabsContent>
                 </Tabs>
               </CardContent>
             </Card>
-          </div>
-        </div>
-      </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
 
       {/* Lecture Modal */}
       <Dialog open={isLectureModalOpen} onOpenChange={setIsLectureModalOpen}>
@@ -905,7 +905,7 @@ export default function CourseDetail() {
                   }}
                 />
               )}
-            </div>
+                                                    </div>
             {/* Custom Controls Overlay */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 sm:p-3 md:p-4 opacity-0 group-hover:opacity-100 transition-opacity">
               <div className="flex flex-col gap-1 sm:gap-2">
@@ -918,7 +918,7 @@ export default function CourseDetail() {
                     className="h-full bg-blue-500 rounded-full" 
                     style={{ width: `${played * 100}%` }} 
                   />
-                </div>
+                                                </div>
                 {/* Controls */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 sm:gap-4">
@@ -954,8 +954,8 @@ export default function CourseDetail() {
                         onChange={handleVolumeChange}
                         className="w-16 sm:w-20 h-1 bg-gray-600 rounded-full cursor-pointer"
                       />
-                    </div>
-                  </div>
+                                            </div>
+                                        </div>
                   <div className="flex items-center gap-1 sm:gap-2">
                     <span className="text-xs sm:text-sm text-white">
                       {formatTime(played * duration)} / {formatTime(duration)}
@@ -968,11 +968,11 @@ export default function CourseDetail() {
                     >
                       {isFullscreen ? <Minimize className="h-4 w-4 sm:h-5 sm:w-5" /> : <Maximize className="h-4 w-4 sm:h-5 sm:w-5" />}
                     </Button>
-                  </div>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
-            </div>
-          </div>
           <div className="mt-2 sm:mt-3 md:mt-4 space-y-2 sm:space-y-3">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
               <div className="flex items-center gap-2">
@@ -988,13 +988,13 @@ export default function CourseDetail() {
               >
                 <Play className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                 Mark as Complete
-              </Button>
-            </div>
-          </div>
+                    </Button>
+                        </div>
+                        </div>
         </DialogContent>
       </Dialog>
 
-      {/* Conversation Modal */}
+            {/* Conversation Modal */}
       <Dialog
         open={isConversationModalOpen}
         onOpenChange={setIsConversationModalOpen}
@@ -1017,11 +1017,11 @@ export default function CourseDetail() {
                         <p className="text-xs sm:text-sm text-gray-500">
                           {moment(message.date).format("DD MMM, YYYY")}
                         </p>
-                      </div>
-                    </div>
+                                                    </div>
+                                                </div>
                     <p className="text-sm sm:text-base">{message.message}</p>
-                  </div>
-                </div>
+                                            </div>
+                                        </div>
               ))}
               <div ref={lastElementRef} />
             </div>
@@ -1038,9 +1038,9 @@ export default function CourseDetail() {
                 <Send className="h-4 w-4" />
               </Button>
             </form>
-          </div>
+                    </div>
         </DialogContent>
       </Dialog>
-    </div>
+                        </div>
   );
 }

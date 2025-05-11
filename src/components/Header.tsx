@@ -5,13 +5,38 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
 import { useCart } from "@/providers/CartProvider";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  MagnifyingGlassIcon as SearchIcon, 
-  ShoppingCartIcon, 
-  Bars3Icon as MenuIcon,
-  XMarkIcon as XIcon,
-  ChevronDownIcon
-} from "@heroicons/react/24/outline";
+import { cn } from "@/lib/utils";
+
+// Shadcn UI components
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+// Lucide icons
+import {
+  Search,
+  ShoppingCart,
+  Menu as MenuIcon,
+  X as XIcon,
+  ChevronDown,
+  Heart,
+  Laptop,
+  Users,
+  BookOpenCheck,
+  MessageSquare,
+  Settings,
+  DollarSign,
+  LogOut,
+  UserRound,
+} from "lucide-react";
 
 function BaseHeader() {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,8 +44,11 @@ function BaseHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { isLoggedIn } = useAuthStore();
+  const { isLoggedIn, allUserData } = useAuthStore();
   const { cartCount } = useCart();
+  
+  // Get teacher ID from user data
+  const teacherId = allUserData?.teacher_id || 0;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,9 +66,36 @@ function BaseHeader() {
     }
   };
 
+  // Navigation items for Instructor and Student
+  const instructorItems = [
+    { path: "/instructor/dashboard/", text: "Dashboard", icon: <Laptop className="h-4 w-4" /> },
+    { path: "/instructor/courses/", text: "My Courses", icon: <BookOpenCheck className="h-4 w-4" /> },
+    { path: "/instructor/create-course/", text: "Create Course", icon: <BookOpenCheck className="h-4 w-4" /> },
+    { path: "/instructor/reviews/", text: "Reviews", icon: <MessageSquare className="h-4 w-4" /> },
+    { path: "/instructor/question-answer/", text: "Q/A", icon: <MessageSquare className="h-4 w-4" /> },
+    { path: "/instructor/students/", text: "Students", icon: <Users className="h-4 w-4" /> },
+    { path: "/instructor/earning/", text: "Earning", icon: <DollarSign className="h-4 w-4" /> },
+    { path: "/instructor/profile/", text: "Settings", icon: <Settings className="h-4 w-4" /> },
+  ];
+
+  const studentItems = [
+    { path: "/student/dashboard/", text: "Dashboard", icon: <Laptop className="h-4 w-4" /> },
+    { path: "/student/courses/", text: "My Courses", icon: <BookOpenCheck className="h-4 w-4" /> },
+    { path: "/student/wishlist/", text: "Wishlist", icon: <Heart className="h-4 w-4" /> },
+    { path: "/student/question-answer/", text: "Q/A", icon: <MessageSquare className="h-4 w-4" /> },
+    { path: "/student/profile/", text: "Profile", icon: <UserRound className="h-4 w-4" /> },
+  ];
+
   return (
-    <header className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-lg' : 'bg-gradient-to-b from-primaryCustom-100 to-primaryCustom-300 shadow-sm'} border-b border-gray-200`}>
-      <div className="container mx-auto px-4 ">
+    <header 
+      className={cn(
+        "fixed w-full z-50 transition-all duration-300 border-b", 
+        isScrolled 
+          ? "bg-white/95 backdrop-blur-sm shadow-md border-gray-200" 
+          : "bg-gradient-to-b from-primaryCustom-100 to-primaryCustom-300 border-gray-200/50"
+      )}
+    >
+      <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <motion.div   
@@ -86,156 +141,179 @@ function BaseHeader() {
 
           {/* Mobile menu button */}
           <div className="flex md:hidden">
-            <button
+            <Button 
+              variant="ghost" 
+              size="icon" 
               onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-600 hover:text-buttonsCustom-600 focus:outline-none"
               aria-label="Toggle menu"
             >
               {isOpen ? (
-                <XIcon className="h-6 w-6" />
+                <XIcon className="h-5 w-5" />
               ) : (
-                <MenuIcon className="h-6 w-6" />
+                <MenuIcon className="h-5 w-5" />
               )}
-            </button>
+            </Button>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link
-              href="/pages/contact-us/"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${pathname === '/pages/contact-us/' ? 'text-buttonsCustom-600 bg-buttonsCustom-50' : 'text-gray-700 hover:text-buttonsCustom-600'}`}
-            >
-              Contact
-            </Link>
-
-            <Link
-              href="/pages/about-us/"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${pathname === '/pages/about-us/' ? 'text-buttonsCustom-600 bg-buttonsCustom-50' : 'text-gray-700 hover:text-buttonsCustom-600'}`}
-            >
-              About
-            </Link>
-
-            {/* Instructor Dropdown */}
-            <div className="relative group">
-              <button className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${pathname.includes('/instructor/') ? 'text-buttonsCustom-600 bg-buttonsCustom-50' : 'text-gray-700 hover:text-buttonsCustom-600'}`}>
-                Instructor
-                <ChevronDownIcon className="ml-1 h-4 w-4 transition-transform group-hover:rotate-180" />
-              </button>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-1 z-10 hidden group-hover:block border border-gray-100"
-              >
-                {[
-                  { path: "/instructor/dashboard/", text: "Dashboard" },
-                  { path: "/instructor/courses/", text: "My Courses" },
-                  { path: "/instructor/create-course/", text: "Create Course" },
-                  { path: "/instructor/reviews/", text: "Reviews" },
-                  { path: "/instructor/question-answer/", text: "Q/A" },
-                  { path: "/instructor/students/", text: "Students" },
-                  { path: "/instructor/earning/", text: "Earning" },
-                  { path: "/instructor/profile/", text: "Settings" },
-                ].map((item) => (
-                  <Link
-                    key={item.path}
-                    href={item.path}
-                    className={`block px-4 py-2 text-sm transition-colors ${pathname === item.path ? 'bg-buttonsCustom-50 text-buttonsCustom-600' : 'text-gray-700 hover:bg-buttonsCustom-50 hover:text-buttonsCustom-600'}`}
+          <NavigationMenu className="hidden md:flex">
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <Link href="/pages/contact-us/" legacyBehavior passHref>
+                  <NavigationMenuLink 
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      pathname === '/pages/contact-us/' && "bg-accent text-accent-foreground"
+                    )}
                   >
-                    {item.text}
-                  </Link>
-                ))}
-              </motion.div>
-            </div>
+                    Contact
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
 
-            {/* Student Dropdown */}
-            <div className="relative group">
-              <button className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${pathname.includes('/student/') ? 'text-buttonsCustom-600 bg-buttonsCustom-50' : 'text-gray-700 hover:text-buttonsCustom-600'}`}>
-                Student
-                <ChevronDownIcon className="ml-1 h-4 w-4 transition-transform group-hover:rotate-180" />
-              </button>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-1 z-10 hidden group-hover:block border border-gray-100"
-              >
-                {[
-                  { path: "/student/dashboard/", text: "Dashboard" },
-                  { path: "/student/courses/", text: "My Courses" },
-                  { path: "/student/wishlist/", text: "Wishlist" },
-                  { path: "/student/question-answer/", text: "Q/A" },
-                  { path: "/student/profile/", text: "Profile" },
-                ].map((item) => (
-                  <Link
-                    key={item.path}
-                    href={item.path}
-                    className={`block px-4 py-2 text-sm transition-colors ${pathname === item.path ? 'bg-buttonsCustom-50 text-buttonsCustom-600' : 'text-gray-700 hover:bg-buttonsCustom-50 hover:text-buttonsCustom-600'}`}
+              <NavigationMenuItem>
+                <Link href="/pages/about-us/" legacyBehavior passHref>
+                  <NavigationMenuLink 
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      pathname === '/pages/about-us/' && "bg-accent text-accent-foreground"
+                    )}
                   >
-                    {item.text}
-                  </Link>
-                ))}
-              </motion.div>
-            </div>
-          </nav>
+                    About
+                  </NavigationMenuLink>
+                </Link>
+              </NavigationMenuItem>
+
+              {/* Instructor Menu - Show when teacherId = 1 */}
+              {teacherId === 1 && (
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger 
+                    className={cn(
+                      pathname.includes('/instructor/') && "bg-accent text-accent-foreground"
+                    )}
+                  >
+                    Instructor
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-1 p-2 md:w-[500px] md:grid-cols-2">
+                      {instructorItems.map((item) => (
+                        <li key={item.path}>
+                          <Link href={item.path} legacyBehavior passHref>
+                            <NavigationMenuLink
+                              className={cn(
+                                "flex w-full select-none items-center gap-2 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                                pathname === item.path && "bg-accent text-accent-foreground"
+                              )}
+                            >
+                              {item.icon}
+                              <span>{item.text}</span>
+                            </NavigationMenuLink>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              )}
+
+              {/* Student Menu - Show when teacherId = 0 */}
+              {teacherId === 0 && (
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger 
+                    className={cn(
+                      pathname.includes('/student/') && "bg-accent text-accent-foreground"
+                    )}
+                  >
+                    Student
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-1 p-2">
+                      {studentItems.map((item) => (
+                        <li key={item.path}>
+                          <Link href={item.path} legacyBehavior passHref>
+                            <NavigationMenuLink
+                              className={cn(
+                                "flex w-full select-none items-center gap-2 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                                pathname === item.path && "bg-accent text-accent-foreground"
+                              )}
+                            >
+                              {item.icon}
+                              <span>{item.text}</span>
+                            </NavigationMenuLink>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              )}
+            </NavigationMenuList>
+          </NavigationMenu>
 
           {/* Search and Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <motion.div 
-              whileHover={{ scale: 1.02 }}
-              className="relative"
-            >
-              <input
+            <div className="relative">
+              <Input
                 type="text"
                 placeholder="Search Courses..."
                 value={searchQuery}
                 onChange={handleSearch}
-                className="bg-gray-50 text-gray-800 px-4 pl-10 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-buttonsCustom-300 focus:border-transparent w-64 border border-gray-200 text-sm"
+                className="w-64 pl-10 rounded-full"
               />
-              <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-            </motion.div>
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            </div>
 
             {!isLoggedIn() ? (
               <>
                 {pathname !== "/login/" && (
-                  <Link
-                    href="/login/"
-                    className="px-4 py-2 text-buttonsCustom-600 border border-buttonsCustom-600 rounded-full hover:bg-buttonsCustom-50 transition-colors text-sm font-medium"
+                  <Button
+                    variant="outline"
+                    className="rounded-full border-buttonsCustom-600 text-buttonsCustom-600 hover:bg-buttonsCustom-50"
+                    asChild
                   >
-                    Login
-                  </Link>
+                    <Link href="/login/">Login</Link>
+                  </Button>
                 )}
                 {pathname !== "/register/" && (
                   <motion.div
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <Link
-                      href="/register/"
-                      className="px-4 py-2 bg-gradient-to-r from-buttonsCustom-600 to-buttonsCustom-700 text-white rounded-full hover:from-buttonsCustom-700 hover:to-buttonsCustom-800 transition-colors text-sm font-medium shadow-sm"
+                    <Button
+                      className="rounded-full bg-gradient-to-r from-buttonsCustom-600 to-buttonsCustom-700 hover:from-buttonsCustom-700 hover:to-buttonsCustom-800"
+                      asChild
                     >
-                      Register
-                    </Link>
+                      <Link href="/register/">Register</Link>
+                    </Button>
                   </motion.div>
                 )}
               </>
             ) : (
               <>
-                <Link
-                  href="/cart/"
-                  className="relative p-2 text-gray-700 hover:text-buttonsCustom-600 rounded-full hover:bg-gray-100 transition-colors"
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-full relative"
+                  asChild
                 >
-                  <ShoppingCartIcon className="h-5 w-5" />
-                  {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-buttonsCustom-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                      {cartCount}
-                    </span>
-                  )}
-                </Link>
-                <Link
-                  href="/logout/"
-                  className="px-4 py-2 bg-buttonsCustom-800 text-white rounded-full hover:bg-buttonsCustom-900 transition-colors text-sm font-medium"
+                  <Link href="/cart/">
+                    <ShoppingCart className="h-5 w-5" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-buttonsCustom-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                        {cartCount}
+                      </span>
+                    )}
+                  </Link>
+                </Button>
+                <Button
+                  className="rounded-full bg-buttonsCustom-800 hover:bg-buttonsCustom-900"
+                  asChild
                 >
-                  Logout
-                </Link>
+                  <Link href="/logout/">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </Link>
+                </Button>
               </>
             )}
           </div>
@@ -252,121 +330,141 @@ function BaseHeader() {
             >
               <div className="pt-2 pb-4 space-y-2">
                 <div className="relative px-2">
-                  <input
+                  <Input
                     type="text"
                     placeholder="Search Courses..."
                     value={searchQuery}
                     onChange={handleSearch}
-                    className="bg-gray-50 text-gray-800 px-4 pl-10 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-buttonsCustom-300 focus:border-transparent w-full border border-gray-200 text-sm"
+                    className="pl-10 w-full rounded-full"
                   />
-                  <SearchIcon className="absolute left-5 top-2.5 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-5 top-2.5 h-4 w-4 text-muted-foreground" />
                 </div>
 
                 <Link
                   href="/pages/contact-us/"
-                  className="block px-4 py-2 text-gray-700 hover:bg-buttonsCustom-50 hover:text-buttonsCustom-600 rounded-md transition-colors"
+                  className={cn(
+                    "block px-4 py-2 text-sm rounded-md transition-colors", 
+                    pathname === '/pages/contact-us/' 
+                      ? "bg-accent text-accent-foreground" 
+                      : "hover:bg-accent/50"
+                  )}
                 >
                   Contact
                 </Link>
+                
                 <Link
                   href="/pages/about-us/"
-                  className="block px-4 py-2 text-gray-700 hover:bg-buttonsCustom-50 hover:text-buttonsCustom-600 rounded-md transition-colors"
+                  className={cn(
+                    "block px-4 py-2 text-sm rounded-md transition-colors", 
+                    pathname === '/pages/about-us/' 
+                      ? "bg-accent text-accent-foreground" 
+                      : "hover:bg-accent/50"
+                  )}
                 >
                   About
                 </Link>
 
-                {/* Mobile Instructor Dropdown */}
-                <details className="group">
-                  <summary className="flex items-center justify-between px-4 py-2 text-gray-700 hover:bg-buttonsCustom-50 hover:text-buttonsCustom-600 rounded-md transition-colors cursor-pointer list-none">
-                    <span>Instructor</span>
-                    <ChevronDownIcon className="h-4 w-4 transition-transform group-open:rotate-180" />
-                  </summary>
-                  <div className="ml-4 mt-1 space-y-1">
-                    {[
-                      { path: "/instructor/dashboard/", text: "Dashboard" },
-                      { path: "/instructor/courses/", text: "My Courses" },
-                      { path: "/instructor/create-course/", text: "Create Course" },
-                      { path: "/instructor/reviews/", text: "Reviews" },
-                      { path: "/instructor/question-answer/", text: "Q/A" },
-                      { path: "/instructor/students/", text: "Students" },
-                      { path: "/instructor/earning/", text: "Earning" },
-                      { path: "/instructor/profile/", text: "Settings" },
-                    ].map((item) => (
-                      <Link
-                        key={item.path}
-                        href={item.path}
-                        className="block px-4 py-2 text-sm text-gray-600 hover:bg-buttonsCustom-50 hover:text-buttonsCustom-600 rounded-md transition-colors"
-                      >
-                        {item.text}
-                      </Link>
-                    ))}
-                  </div>
-                </details>
+                {/* Mobile Instructor Dropdown - only show when teacherId = 1 */}
+                {teacherId === 1 && (
+                  <details className="group">
+                    <summary className="flex items-center justify-between px-4 py-2 text-sm rounded-md transition-colors hover:bg-accent/50 cursor-pointer list-none">
+                      <span>Instructor</span>
+                      <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+                    </summary>
+                    <div className="ml-4 mt-1 space-y-1">
+                      {instructorItems.map((item) => (
+                        <Link
+                          key={item.path}
+                          href={item.path}
+                          className={cn(
+                            "flex items-center gap-2 px-4 py-2 text-sm rounded-md transition-colors", 
+                            pathname === item.path 
+                              ? "bg-accent text-accent-foreground" 
+                              : "hover:bg-accent/50"
+                          )}
+                        >
+                          {item.icon}
+                          <span>{item.text}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </details>
+                )}
 
-                {/* Mobile Student Dropdown */}
-                <details className="group">
-                  <summary className="flex items-center justify-between px-4 py-2 text-gray-700 hover:bg-buttonsCustom-50 hover:text-buttonsCustom-600 rounded-md transition-colors cursor-pointer list-none">
-                    <span>Student</span>
-                    <ChevronDownIcon className="h-4 w-4 transition-transform group-open:rotate-180" />
-                  </summary>
-                  <div className="ml-4 mt-1 space-y-1">
-                    {[
-                      { path: "/student/dashboard/", text: "Dashboard" },
-                      { path: "/student/courses/", text: "My Courses" },
-                      { path: "/student/wishlist/", text: "Wishlist" },
-                      { path: "/student/question-answer/", text: "Q/A" },
-                      { path: "/student/profile/", text: "Profile" },
-                    ].map((item) => (
-                      <Link
-                        key={item.path}
-                        href={item.path}
-                        className="block px-4 py-2 text-sm text-gray-600 hover:bg-buttonsCustom-50 hover:text-buttonsCustom-600 rounded-md transition-colors"
-                      >
-                        {item.text}
-                      </Link>
-                    ))}
-                  </div>
-                </details>
+                {/* Mobile Student Dropdown - only show when teacherId = 0 */}
+                {teacherId === 0 && (
+                  <details className="group">
+                    <summary className="flex items-center justify-between px-4 py-2 text-sm rounded-md transition-colors hover:bg-accent/50 cursor-pointer list-none">
+                      <span>Student</span>
+                      <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+                    </summary>
+                    <div className="ml-4 mt-1 space-y-1">
+                      {studentItems.map((item) => (
+                        <Link
+                          key={item.path}
+                          href={item.path}
+                          className={cn(
+                            "flex items-center gap-2 px-4 py-2 text-sm rounded-md transition-colors", 
+                            pathname === item.path 
+                              ? "bg-accent text-accent-foreground" 
+                              : "hover:bg-accent/50"
+                          )}
+                        >
+                          {item.icon}
+                          <span>{item.text}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </details>
+                )}
 
-                <div className="border-t border-gray-200 pt-2 mt-2">
+                <div className="border-t border-gray-200/70 pt-2 mt-2">
                   {!isLoggedIn() ? (
                     <div className="flex space-x-2 px-2">
                       {pathname !== "/login/" && (
-                        <Link
-                          href="/login/"
-                          className="flex-1 text-center px-4 py-2 text-buttonsCustom-600 border border-buttonsCustom-600 rounded-full hover:bg-buttonsCustom-50 transition-colors text-sm font-medium"
+                        <Button
+                          variant="outline"
+                          className="flex-1 rounded-full border-buttonsCustom-600 text-buttonsCustom-600 hover:bg-buttonsCustom-50"
+                          asChild
                         >
-                          Login
-                        </Link>
+                          <Link href="/login/">Login</Link>
+                        </Button>
                       )}
                       {pathname !== "/register/" && (
-                        <Link
-                          href="/register/"
-                          className="flex-1 text-center px-4 py-2 bg-gradient-to-r from-buttonsCustom-600 to-buttonsCustom-700 text-white rounded-full hover:from-buttonsCustom-700 hover:to-buttonsCustom-800 transition-colors text-sm font-medium"
+                        <Button
+                          className="flex-1 rounded-full bg-gradient-to-r from-buttonsCustom-600 to-buttonsCustom-700 hover:from-buttonsCustom-700 hover:to-buttonsCustom-800"
+                          asChild
                         >
-                          Register
-                        </Link>
+                          <Link href="/register/">Register</Link>
+                        </Button>
                       )}
                     </div>
                   ) : (
                     <div className="flex items-center justify-between px-2">
-                      <Link
-                        href="/cart/"
-                        className="relative p-2 text-gray-700 hover:text-buttonsCustom-600 rounded-full hover:bg-gray-100 transition-colors"
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full relative"
+                        asChild
                       >
-                        <ShoppingCartIcon className="h-5 w-5" />
-                        {cartCount > 0 && (
-                          <span className="absolute -top-1 -right-1 bg-buttonsCustom-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                            {cartCount}
-                          </span>
-                        )}
-                      </Link>
-                      <Link
-                        href="/logout/"
-                        className="px-4 py-2 bg-buttonsCustom-800 text-white rounded-full hover:bg-buttonsCustom-900 transition-colors text-sm font-medium"
+                        <Link href="/cart/">
+                          <ShoppingCart className="h-5 w-5" />
+                          {cartCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-buttonsCustom-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                              {cartCount}
+                            </span>
+                          )}
+                        </Link>
+                      </Button>
+                      <Button
+                        className="rounded-full bg-buttonsCustom-800 hover:bg-buttonsCustom-900"
+                        asChild
                       >
-                        Logout
-                      </Link>
+                        <Link href="/logout/">
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Logout
+                        </Link>
+                      </Button>
                     </div>
                   )}
                 </div>
