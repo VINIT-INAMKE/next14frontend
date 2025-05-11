@@ -32,6 +32,7 @@ import {
   ShoppingCart,
   CheckCircle,
   Loader2,
+  Heart,
 } from "lucide-react";
 
 interface Course {
@@ -80,11 +81,32 @@ interface Course {
   }[];
 }
 
+interface WishlistItem {
+  id: number;
+  course: {
+    id: number;
+    slug: string;
+    title: string;
+    image: string;
+    level: string;
+    language: string;
+    price: number;
+    average_rating: number;
+    students: Array<{ id: number }>;
+    reviews: Array<{ id: number }>;
+    teacher: {
+      full_name: string;
+    };
+  };
+}
+
 function CourseDetail(): React.ReactElement {
   const [course, setCourse] = useState<Course | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [addToCartBtn, setAddToCartBtn] = useState<string>("Add To Cart");
   const [activeTab, setActiveTab] = useState<string>("overview");
+  const [isWishlisted, setIsWishlisted] = useState<boolean>(false);
+  const [wishlistLoading, setWishlistLoading] = useState<boolean>(false);
 
   const params = useParams();
   const slug = params?.slug as string;
@@ -105,8 +127,57 @@ function CourseDetail(): React.ReactElement {
   useEffect(() => {
     if (slug) {
       fetchCourse();
+      checkWishlistStatus();
     }
   }, [slug, fetchCourse]);
+
+  const checkWishlistStatus = useCallback(async (): Promise<void> => {
+    if (!userId) return;
+    
+    try {
+      const res = await useAxios.get<WishlistItem[]>(`student/wishlist/${userId}/`);
+      // Check if this course is in the user's wishlist
+      const isInWishlist = res.data.some((item: WishlistItem) => 
+        item.course && item.course.slug === slug
+      );
+      setIsWishlisted(isInWishlist);
+    } catch (error) {
+      console.error("Error checking wishlist status:", error);
+    }
+  }, [userId, slug]);
+
+  const toggleWishlist = async (): Promise<void> => {
+    if (!userId || !course) return;
+    
+    setWishlistLoading(true);
+    try {
+      // Create FormData
+      const formdata = new FormData();
+      formdata.append("user_id", userId.toString());
+      formdata.append("course_id", course.id.toString());
+      
+      if (isWishlisted) {
+        // Looking at the wishlist page, there's no specific endpoint for removing
+        // Instead, we'll call the add/remove toggle endpoint
+        await useAxios.post(`student/wishlist/${userId}/`, formdata);
+        Toast().fire({ title: "Removed from Wishlist", icon: "success" });
+        setIsWishlisted(false);
+      } else {
+        // Call the same endpoint for adding
+        await useAxios.post(`student/wishlist/${userId}/`, formdata);
+        Toast().fire({ title: "Added to Wishlist", icon: "success" });
+        setIsWishlisted(true);
+      }
+      
+      // Refresh wishlist status after toggling
+      await checkWishlistStatus();
+    } catch (error) {
+      console.error("Error toggling wishlist:", error);
+      Toast().fire({ title: "Operation Failed", icon: "error" });
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
   const addToCart = async (
     courseId: number,
@@ -141,25 +212,25 @@ function CourseDetail(): React.ReactElement {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-buttonsCustom-600" />
           </div>
         ) : course ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             <div className="lg:col-span-2">
-              <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-6">
-                <div className="mb-8">
+              <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 md:p-6">
+                <div className="mb-6 md:mb-8">
                   {/* Title and Category */}
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 md:gap-4 mb-6 md:mb-8">
                     <div className="w-fit">
-                      <span className="inline-block bg-gradient-to-r from-buttonsCustom-600 to-buttonsCustom-700 text-white text-sm font-medium px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-shadow">
+                      <span className="inline-block bg-gradient-to-r from-buttonsCustom-600 to-buttonsCustom-700 text-white text-sm font-medium px-3 md:px-4 py-1.5 md:py-2 rounded-full shadow-md hover:shadow-lg transition-shadow">
                         {course.category.title}
                       </span>
                     </div>
-                    <h1 className="text-4xl font-bold tracking-tight text-buttonsCustom-900 sm:text-3xl">
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-buttonsCustom-900">
                       {course.title}
                     </h1>
                   </div>
 
-                  {/* Tab Navigation */}
-                  <nav className="relative">
-                    <div className="flex space-x-8 border-b border-buttonsCustom-200">
+                  {/* Tab Navigation - Scrollable on mobile */}
+                  <div className="relative overflow-x-auto pb-2 -mb-2">
+                    <nav className="flex space-x-4 md:space-x-8 border-b border-buttonsCustom-200 whitespace-nowrap">
                       {[
                         { id: "overview", label: "Overview" },
                         { id: "curriculum", label: "Curriculum" },
@@ -169,7 +240,7 @@ function CourseDetail(): React.ReactElement {
                         <button
                           key={tab.id}
                           onClick={() => setActiveTab(tab.id)}
-                          className={`relative py-3 text-sm font-medium transition-colors focus:outline-none ${
+                          className={`relative py-3 text-xs sm:text-sm font-medium transition-colors focus:outline-none ${
                             activeTab === tab.id
                               ? "text-buttonsCustom-600"
                               : "text-buttonsCustom-700 hover:text-buttonsCustom-900"
@@ -189,8 +260,8 @@ function CourseDetail(): React.ReactElement {
                           )}
                         </button>
                       ))}
-                    </div>
-                  </nav>
+                    </nav>
+                  </div>
                 </div>
                 
                 {activeTab === "overview" && (
@@ -609,7 +680,7 @@ function CourseDetail(): React.ReactElement {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 whileHover={{ y: -5 }}
-                className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/20 hover:shadow-2xl transition-all duration-300"
+                className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/20 hover:shadow-2xl transition-all duration-300 sticky top-4"
               >
                 {/* Media Container */}
                 <div className="relative aspect-video w-full">
@@ -641,77 +712,98 @@ function CourseDetail(): React.ReactElement {
                 </div>
 
                 {/* Pricing & CTA */}
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-6">
+                <div className="p-4 md:p-6">
+                  <div className="flex justify-between items-center mb-4 md:mb-6">
                     <div className="flex items-end gap-2">
-                      <span className="text-3xl font-bold text-buttonsCustom-900">
+                      <span className="text-2xl md:text-3xl font-bold text-buttonsCustom-900">
                       ₹ {course.price}
                       </span>
-                      <span className="text-lg text-buttonsCustom-400 line-through">
+                      <span className="text-sm md:text-lg text-buttonsCustom-400 line-through">
                       ₹ 1700
                       </span>
                     </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    {addToCartBtn === "Add To Cart" && (
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        type="button"
+                        className="col-span-2 sm:col-span-1 bg-gradient-to-r from-buttonsCustom-600 to-buttonsCustom-700 hover:from-buttonsCustom-700 hover:to-buttonsCustom-800 text-white font-medium shadow-lg px-3 py-2.5 md:py-3 rounded-xl flex items-center justify-center gap-2 text-sm md:text-base"
+                        onClick={() =>
+                          addToCart(
+                            course.id,
+                            userId,
+                            course.price,
+                            CartId() || ""
+                          )
+                        }
+                      >
+                        <ShoppingCart className="w-4 h-4 md:w-5 md:h-5" />
+                        Add To Cart
+                      </motion.button>
+                    )}
+
+                    {addToCartBtn === "Added To Cart" && (
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        type="button"
+                        className="col-span-2 sm:col-span-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-medium shadow-lg px-6 py-2.5 md:py-3 rounded-xl flex items-center justify-center gap-2 text-sm md:text-base"
+                        onClick={() =>
+                          addToCart(
+                            course.id,
+                            userId,
+                            course.price,
+                            CartId() || ""
+                          )
+                        }
+                      >
+                        <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />
+                        Added To Cart
+                      </motion.button>
+                    )}
+
+                    {addToCartBtn === "Adding To Cart" && (
+                      <button
+                        type="button"
+                        className="col-span-2 sm:col-span-1 bg-gradient-to-r from-buttonsCustom-600 to-buttonsCustom-500 text-white font-medium shadow-lg px-6 py-2.5 md:py-3 rounded-xl flex items-center justify-center gap-2 text-sm md:text-base"
+                        disabled
+                      >
+                        <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
+                        Adding To Cart
+                      </button>
+                    )}
                     
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      {addToCartBtn === "Add To Cart" && (
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          type="button"
-                          className="flex-1 bg-gradient-to-r from-buttonsCustom-600 to-buttonsCustom-700 hover:from-buttonsCustom-700 hover:to-buttonsCustom-800 text-white font-medium shadow-lg px-3 py-3 rounded-xl flex items-center justify-center gap-2"
-                          onClick={() =>
-                            addToCart(
-                              course.id,
-                              userId,
-                              course.price,
-                              CartId() || ""
-                            )
-                          }
-                        >
-                          <ShoppingCart className="w-5 h-5" />
-                          Add To Cart
-                        </motion.button>
+                    {/* Wishlist Button */}
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      type="button"
+                      className={`col-span-2 sm:col-span-1 font-medium px-3 py-2.5 md:py-3 rounded-xl flex items-center justify-center gap-2 text-sm md:text-base border ${
+                        isWishlisted 
+                          ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100" 
+                          : "border-buttonsCustom-200 bg-buttonsCustom-50 text-buttonsCustom-700 hover:bg-buttonsCustom-100"
+                      }`}
+                      onClick={toggleWishlist}
+                      disabled={wishlistLoading}
+                    >
+                      {wishlistLoading ? (
+                        <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
+                      ) : (
+                        <Heart className={`w-4 h-4 md:w-5 md:h-5 ${isWishlisted ? "fill-red-500" : ""}`} />
                       )}
-
-                      {addToCartBtn === "Added To Cart" && (
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          type="button"
-                          className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-medium shadow-lg px-6 py-3 rounded-xl flex items-center justify-center gap-2"
-                          onClick={() =>
-                            addToCart(
-                              course.id,
-                              userId,
-                              course.price,
-                              CartId() || ""
-                            )
-                          }
-                        >
-                          <CheckCircle className="w-5 h-5" />
-                          Added To Cart
-                        </motion.button>
-                      )}
-
-                      {addToCartBtn === "Adding To Cart" && (
-                        <button
-                          type="button"
-                          className="flex-1 bg-gradient-to-r from-buttonsCustom-600 to-buttonsCustom-500 text-white font-medium shadow-lg px-6 py-3 rounded-xl flex items-center justify-center gap-2"
-                          disabled
-                        >
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Adding To Cart
-                        </button>
-                      )}
-                    </div>
+                      {isWishlisted ? "Wishlisted" : "Add to Wishlist"}
+                    </motion.button>
                   </div>
 
                   {/* Course Meta */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3 p-3 bg-buttonsCustom-50 rounded-lg border border-buttonsCustom-200">
-                      <BookOpen className="w-5 h-5 text-buttonsCustom-700" />
+                  <div className="space-y-3 md:space-y-4">
+                    <div className="flex items-center gap-3 p-2.5 md:p-3 bg-buttonsCustom-50 rounded-lg border border-buttonsCustom-200">
+                      <BookOpen className="w-4 h-4 md:w-5 md:h-5 text-buttonsCustom-700" />
                       <div>
-                        <p className="text-sm text-buttonsCustom-700">Lectures</p>
-                        <p className="font-medium text-buttonsCustom-900">
+                        <p className="text-xs md:text-sm text-buttonsCustom-700">Lectures</p>
+                        <p className="text-sm md:text-base font-medium text-buttonsCustom-900">
                           {course.curriculum.reduce(
                             (total, module) =>
                               total + module.variant_items.length,
@@ -722,27 +814,27 @@ function CourseDetail(): React.ReactElement {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 p-3 bg-buttonsCustom-50 rounded-lg border border-buttonsCustom-200">
-                      <BarChart2 className="w-5 h-5 text-buttonsCustom-700" />
+                    <div className="flex items-center gap-3 p-2.5 md:p-3 bg-buttonsCustom-50 rounded-lg border border-buttonsCustom-200">
+                      <BarChart2 className="w-4 h-4 md:w-5 md:h-5 text-buttonsCustom-700" />
                       <div>
-                        <p className="text-sm text-buttonsCustom-700">Level</p>
-                        <p className="font-medium text-buttonsCustom-900 capitalize">{course.level}</p>
+                        <p className="text-xs md:text-sm text-buttonsCustom-700">Level</p>
+                        <p className="text-sm md:text-base font-medium text-buttonsCustom-900 capitalize">{course.level}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 p-3 bg-buttonsCustom-50 rounded-lg border border-buttonsCustom-200">
-                      <Globe className="w-5 h-5 text-buttonsCustom-700" />
+                    <div className="flex items-center gap-3 p-2.5 md:p-3 bg-buttonsCustom-50 rounded-lg border border-buttonsCustom-200">
+                      <Globe className="w-4 h-4 md:w-5 md:h-5 text-buttonsCustom-700" />
                       <div>
-                        <p className="text-sm text-buttonsCustom-700">Language</p>
-                        <p className="font-medium text-buttonsCustom-900">{course.language}</p>
+                        <p className="text-xs md:text-sm text-buttonsCustom-700">Language</p>
+                        <p className="text-sm md:text-base font-medium text-buttonsCustom-900">{course.language}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 p-3 bg-buttonsCustom-50 rounded-lg border border-buttonsCustom-200">
-                      <Calendar className="w-5 h-5 text-buttonsCustom-700" />
+                    <div className="flex items-center gap-3 p-2.5 md:p-3 bg-buttonsCustom-50 rounded-lg border border-buttonsCustom-200">
+                      <Calendar className="w-4 h-4 md:w-5 md:h-5 text-buttonsCustom-700" />
                       <div>
-                        <p className="text-sm text-buttonsCustom-700">Last Updated</p>
-                        <p className="font-medium text-buttonsCustom-900">
+                        <p className="text-xs md:text-sm text-buttonsCustom-700">Last Updated</p>
+                        <p className="text-sm md:text-base font-medium text-buttonsCustom-900">
                           {new Date(course.date).toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "long",
