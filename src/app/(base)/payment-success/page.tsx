@@ -158,12 +158,7 @@ function PaymentSuccessContent() {
                       <span>•</span>
                       <span>{item.course.language}</span>
                     </div>
-                    <Link
-                      href={`/course/${item.course.slug}/learn`}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-buttonsCustom-700 hover:bg-buttonsCustom-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-buttonsCustom-500"
-                    >
-                      Start Learning
-                    </Link>
+                    
                   </div>
                 </div>
               ))}
@@ -173,17 +168,12 @@ function PaymentSuccessContent() {
           {/* Action Buttons */}
           <div className="flex justify-center space-x-4">
             <Link
-              href="/dashboard"
+              href="/student/dashboard"
               className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-buttonsCustom-700 hover:bg-buttonsCustom-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-buttonsCustom-500"
             >
               Go to Dashboard
             </Link>
-            <Link
-              href="/courses"
-              className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-buttonsCustom-500"
-            >
-              Browse More Courses
-            </Link>
+            
           </div>
         </div>
       </div>
