@@ -33,7 +33,7 @@ import {
   BookOpenCheck,
   MessageSquare,
   Settings,
-  DollarSign,
+  IndianRupee,
   LogOut,
   UserRound,
 } from "lucide-react";
@@ -74,7 +74,7 @@ function BaseHeader() {
     { path: "/instructor/reviews/", text: "Reviews", icon: <MessageSquare className="h-4 w-4" /> },
     { path: "/instructor/question-answer/", text: "Q/A", icon: <MessageSquare className="h-4 w-4" /> },
     { path: "/instructor/students/", text: "Students", icon: <Users className="h-4 w-4" /> },
-    { path: "/instructor/earning/", text: "Earning", icon: <DollarSign className="h-4 w-4" /> },
+    { path: "/instructor/earning/", text: "Earning", icon: <IndianRupee className="h-4 w-4" /> },
     { path: "/instructor/profile/", text: "Settings", icon: <Settings className="h-4 w-4" /> },
   ];
 
@@ -184,8 +184,8 @@ function BaseHeader() {
                 </Link>
               </NavigationMenuItem>
 
-              {/* Instructor Menu - Show when teacherId = 1 */}
-              {teacherId === 1 && (
+              {/* Instructor Menu - Show when user is logged in AND teacherId > 0 */}
+              {isLoggedIn() && teacherId > 0 && (
                 <NavigationMenuItem>
                   <NavigationMenuTrigger 
                     className={cn(
@@ -216,8 +216,8 @@ function BaseHeader() {
                 </NavigationMenuItem>
               )}
 
-              {/* Student Menu - Show when teacherId = 0 */}
-              {teacherId === 0 && (
+              {/* Student Menu - Show when user is logged in AND teacherId = 0 */}
+              {isLoggedIn() && teacherId === 0 && (
                 <NavigationMenuItem>
                   <NavigationMenuTrigger 
                     className={cn(
@@ -364,8 +364,8 @@ function BaseHeader() {
                   About
                 </Link>
 
-                {/* Mobile Instructor Dropdown - only show when teacherId = 1 */}
-                {teacherId === 1 && (
+                {/* Mobile Instructor Dropdown - only show when user is logged in AND teacherId > 0 */}
+                {isLoggedIn() && teacherId > 0 && (
                   <details className="group">
                     <summary className="flex items-center justify-between px-4 py-2 text-sm rounded-md transition-colors hover:bg-accent/50 cursor-pointer list-none">
                       <span>Instructor</span>
@@ -391,8 +391,8 @@ function BaseHeader() {
                   </details>
                 )}
 
-                {/* Mobile Student Dropdown - only show when teacherId = 0 */}
-                {teacherId === 0 && (
+                {/* Mobile Student Dropdown - only show when user is logged in AND teacherId = 0 */}
+                {isLoggedIn() && teacherId === 0 && (
                   <details className="group">
                     <summary className="flex items-center justify-between px-4 py-2 text-sm rounded-md transition-colors hover:bg-accent/50 cursor-pointer list-none">
                       <span>Student</span>

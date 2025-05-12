@@ -14,6 +14,20 @@ import {
   WalletIcon,
   FingerPrintIcon 
 } from "@heroicons/react/24/outline";
+import { jwtDecode } from "jwt-decode";
+import Cookie from "js-cookie";
+
+interface DecodedToken {
+  token_type: string;
+  exp: number;
+  iat: number;
+  jti: string;
+  user_id: number;
+  full_name: string;
+  email: string;
+  username: string;
+  teacher_id: number;
+}
 
 function Register() {
   const [fullname, setFullname] = useState("");
@@ -49,8 +63,24 @@ function Register() {
       if (error) {
         setError(typeof error === 'string' ? error : JSON.stringify(error));
       } else {
-        await router.push("/");
-        window.location.reload();
+        // Get the access token to check the teacher_id
+        const access_token = Cookie.get("access_token");
+        if (access_token) {
+          try {
+            const decoded = jwtDecode<DecodedToken>(access_token);
+            // Redirect based on teacher_id
+            if (decoded.teacher_id > 0) {
+              router.push("/instructor/dashboard/");
+            } else {
+              router.push("/student/dashboard/");
+            }
+          } catch (err) {
+            console.error("Error decoding token:", err);
+            router.push("/");
+          }
+        } else {
+          router.push("/");
+        }
       }
     } catch (err) {
       setError("An unexpected error occurred");
