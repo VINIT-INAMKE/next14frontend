@@ -101,16 +101,16 @@ export default function Courses() {
     } finally {
       setIsLoading(false);
     }
-    };
+  };
 
-    useEffect(() => {
-        fetchData();
-    }, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const filterCourses = (query: string) => {
-        if (query === "") {
+    if (query === "") {
       setFilteredCourses(courses);
-        } else {
+    } else {
       const filtered = courses.filter((course) =>
         course.course.title.toLowerCase().includes(query.toLowerCase())
       );
@@ -124,38 +124,57 @@ export default function Courses() {
     filterCourses(query);
   };
 
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-4 sm:py-8">
-                    <StudentHeader />
+    <div className="min-h-screen bg-gradient-to-b from-primaryCustom-300 to-primaryCustom-700">
+      <div className="container mx-auto px-4 py-4 sm:py-8 max-w-7xl">
+        <StudentHeader />
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8 mt-4 sm:mt-8">
-                        <StudentSidebar />
+          <div className="lg:sticky lg:top-4 lg:self-start">
+            <StudentSidebar />
+          </div>
 
-          <div className="lg:col-span-3">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+          <div className="lg:col-span-3 space-y-5 sm:space-y-7">
+            <motion.div 
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+              transition={{ duration: 0.3 }}
+              className="flex items-center gap-2 mb-2"
             >
-              <Card className="border-buttonsCustom-200">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
+              <div className="h-10 w-10 rounded-full bg-buttonsCustom-100 flex items-center justify-center">
+                <BookOpen className="h-5 w-5 text-buttonsCustom-600" />
+              </div>
+              <div>
+                <h4 className="text-xl font-bold text-gray-900">Courses</h4>
+                <p className="text-sm text-gray-500">Track your enrolled courses</p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              animate="visible" 
+              variants={fadeInUp}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <Card className="border-buttonsCustom-200 overflow-hidden bg-white/90 backdrop-blur-sm border border-white/20 shadow-xl">
+                {/* Gradient Header */}
+                <div className="h-2 bg-gradient-to-r from-buttonsCustom-800 to-buttonsCustom-600" />
+                <CardHeader className="p-5 sm:p-6 bg-gradient-to-r from-buttonsCustom-50/50 to-transparent border-b border-buttonsCustom-100">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                      <CardTitle className="text-xl sm:text-2xl text-buttonsCustom-900 flex items-center gap-2">
-                        <BookOpen className="h-5 w-5 text-buttonsCustom-600" />
-                        My Courses
-                      </CardTitle>
-                      <CardDescription className="mt-2">
-                        Start watching courses now from your dashboard page.
+                      <CardTitle className="text-lg sm:text-xl text-buttonsCustom-900">My Courses</CardTitle>
+                      <CardDescription className="text-buttonsCustom-500 mt-1">
+                        Start watching courses now from your dashboard page
                       </CardDescription>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                    <div className="relative w-full sm:w-64">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-buttonsCustom-400" />
                       <Input
                         type="search"
                         placeholder="Search Your Courses"
@@ -164,126 +183,139 @@ export default function Courses() {
                         className="pl-10 border-buttonsCustom-200 focus:border-buttonsCustom-500"
                       />
                     </div>
-
-                    {isLoading ? (
-                      <div className="flex items-center justify-center py-8">
-                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-buttonsCustom-600 border-t-transparent" />
-                      </div>
-                    ) : (
-                      <div className="rounded-md border border-buttonsCustom-200">
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="bg-buttonsCustom-50">
-                              <TableHead>Course Details</TableHead>
-                              <TableHead>Enrollment Date</TableHead>
-                              <TableHead>Progress</TableHead>
-                              <TableHead>Status</TableHead>
-                              <TableHead>Action</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {filteredCourses.length === 0 ? (
-                              <TableRow>
-                                <TableCell
-                                  colSpan={5}
-                                  className="text-center py-8 text-gray-500"
-                                >
-                                  No courses found
-                                </TableCell>
-                              </TableRow>
-                            ) : (
-                              filteredCourses.map((course, index) => (
-                                <TableRow key={index}>
-                                  <TableCell>
-                                    <div className="flex items-center gap-4">
-                                      <div className="relative h-16 w-24 overflow-hidden rounded-lg">
-                                        <Image
-                                          src={course.course.image}
-                                          alt={course.course.title}
-                                          fill
-                                          className="object-cover"
-                                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                        />
-                                      </div>
-                                      <div className="space-y-1">
-                                        <h4 className="font-medium text-buttonsCustom-900">
-                                          {course.course.title}
-                            </h4>
-                                        <div className="flex flex-wrap gap-3 text-sm text-gray-500">
-                                          <span className="flex items-center gap-1.5">
-                                            <Languages className="h-4 w-4 text-buttonsCustom-600" />
-                                            {course.course.language}
-                                          </span>
-                                          <span className="flex items-center gap-1.5">
-                                            <BarChart3 className="h-4 w-4 text-buttonsCustom-600" />
-                                            {course.course.level}
-                                          </span>
-                                          <span className="flex items-center gap-1.5">
-                                            <Star className="h-4 w-4 text-yellow-500" />
-                                            {(course.course.average_rating || 0).toFixed(1)}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    <div className="flex items-center gap-1.5 text-gray-600">
-                                      <Calendar className="h-4 w-4 text-buttonsCustom-600" />
-                                      {moment(course.date).format("D MMM, YYYY")}
-                                            </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    <div className="flex items-center gap-1.5 text-gray-600">
-                                      <BookOpen className="h-4 w-4 text-buttonsCustom-600" />
-                                      {course.curriculum.reduce(
-                                        (total, section) =>
-                                          total + section.variant_items.length,
-                                        0
-                                      )} Lectures
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    <div className="flex items-center gap-1.5 text-gray-600">
-                                      <BookOpenCheck className="h-4 w-4 text-green-500" />
-                                      {course.completed_lesson.length} Completed
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Button
-                                      variant={
-                                        course.completed_lesson.length > 0
-                                          ? "default"
-                                          : "secondary"
-                                      }
-                                      size="sm"
-                                      className="flex items-center gap-2"
-                                      onClick={() =>
-                                        router.push(
-                                          `/student/course/${course.enrollment_id}`
-                                        )
-                                      }
-                                    >
-                                      {course.completed_lesson.length > 0
-                                        ? "Continue"
-                                        : "Start"}{" "}
-                                      Course
-                                      <ArrowRight className="h-4 w-4" />
-                                    </Button>
-                                  </TableCell>
-                                </TableRow>
-                              ))
-                            )}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
                   </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-buttonsCustom-600" />
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader className="bg-gray-50">
+                          <TableRow>
+                            <TableHead className="px-6 py-3 text-left">Course Details</TableHead>
+                            <TableHead className="px-6 py-3 text-left">Enrollment Date</TableHead>
+                            <TableHead className="px-6 py-3 text-left">Progress</TableHead>
+                            <TableHead className="px-6 py-3 text-left">Status</TableHead>
+                            <TableHead className="px-6 py-3 text-left">Action</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody className="divide-y divide-gray-200">
+                          {filteredCourses.length === 0 ? (
+                            <TableRow>
+                              <TableCell
+                                colSpan={5}
+                                className="text-center py-12 bg-white/80 backdrop-blur-sm rounded-lg border border-white/20 shadow-md"
+                              >
+                                <BookOpen className="h-12 w-12 mx-auto text-gray-300" />
+                                <h3 className="mt-4 text-lg font-medium text-gray-900">
+                                  No courses found
+                                </h3>
+                                <p className="mt-2 text-sm text-gray-500">
+                                  Enroll in a course to get started
+                                </p>
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            filteredCourses.map((course, index) => (
+                              <motion.tr 
+                                key={index}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: index * 0.05 }}
+                                className="bg-white hover:bg-gray-50"
+                              >
+                                <TableCell className="px-6 py-4">
+                                  <div className="flex items-center gap-4">
+                                    <div className="relative h-16 w-24 overflow-hidden rounded-lg">
+                                      <Image
+                                        src={course.course.image}
+                                        alt={course.course.title}
+                                        fill
+                                        className="object-cover"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <h4 className="font-medium text-buttonsCustom-900">
+                                        {course.course.title}
+                                      </h4>
+                                      <div className="flex flex-wrap gap-3 text-sm text-gray-500">
+                                        <span className="flex items-center gap-1.5">
+                                          <Languages className="h-4 w-4 text-buttonsCustom-600" />
+                                          {course.course.language}
+                                        </span>
+                                        <span className="flex items-center gap-1.5">
+                                          <BarChart3 className="h-4 w-4 text-buttonsCustom-600" />
+                                          {course.course.level}
+                                        </span>
+                                        <span className="flex items-center gap-1.5">
+                                          <Star className="h-4 w-4 text-yellow-500" />
+                                          {(course.course.average_rating || 0).toFixed(1)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-6 py-4 text-sm text-gray-700">
+                                  <div className="flex items-center gap-1.5 text-gray-600">
+                                    <Calendar className="h-4 w-4 text-buttonsCustom-600" />
+                                    {moment(course.date).format("D MMM, YYYY")}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-6 py-4 text-sm text-gray-700">
+                                  <div className="flex items-center gap-1.5 text-gray-600">
+                                    <BookOpen className="h-4 w-4 text-buttonsCustom-600" />
+                                    {course.curriculum.reduce(
+                                      (total, section) =>
+                                        total + section.variant_items.length,
+                                      0
+                                    )} Lectures
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-6 py-4 text-sm text-gray-700">
+                                  <div className="flex items-center gap-1.5 text-gray-600">
+                                    <BookOpenCheck className="h-4 w-4 text-green-500" />
+                                    {course.completed_lesson.length} Completed
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-6 py-4">
+                                  <Button
+                                    variant={
+                                      course.completed_lesson.length > 0
+                                        ? "default"
+                                        : "secondary"
+                                    }
+                                    size="sm"
+                                    className="flex items-center gap-2"
+                                    onClick={() =>
+                                      router.push(
+                                        `/student/course/${course.enrollment_id}`
+                                      )
+                                    }
+                                  >
+                                    {course.completed_lesson.length > 0
+                                      ? "Continue"
+                                      : "Start"}{" "}
+                                    Course
+                                    <ArrowRight className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </motion.tr>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
           </div>
-                        </div>
-                    </div>
-                </div>
-    );
+        </div>
+      </div>
+    </div>
+  );
 }

@@ -3,16 +3,27 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { 
-  LayoutDashboard, 
-  GraduationCap, 
-  IndianRupee, 
+import Link from "next/link";
+import {
+  LayoutDashboard,
+  GraduationCap,
+  IndianRupee,
   Search,
   Edit,
   Trash,
-  Eye,
-  BookOpen
+  BookOpen,
+  AlertTriangle,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,6 +34,7 @@ import InstructorSidebar from "@/components/instructor/Sidebar";
 import InstructorHeader from "@/components/instructor/Header";
 import useAxios from "@/utils/axios";
 import UserData from "@/views/plugins/UserData";
+import Toast from "@/views/plugins/Toast";
 
 interface Stats {
   total_courses: number;
@@ -37,6 +49,8 @@ interface Student {
 
 interface Course {
   id: string;
+  course_id: string;
+  slug?: string; // Add the slug property
   title: string;
   image: string;
   language: string;
@@ -52,18 +66,22 @@ export default function Dashboard() {
   const [stats, setStats] = useState<Stats>({
     total_courses: 0,
     total_students: 0,
-    total_revenue: 0
+    total_revenue: 0,
   });
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [deletingCourse, setDeletingCourse] = useState<Course | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchCourseData = async () => {
     setIsLoading(true);
     try {
       const [statsRes, coursesRes] = await Promise.all([
         useAxios.get(`teacher/summary/${UserData()?.teacher_id}/`),
-        useAxios.get(`teacher/course-lists/${UserData()?.teacher_id}/`)
+        useAxios.get(`teacher/course-lists/${UserData()?.teacher_id}/`),
       ]);
       setStats(statsRes.data[0]);
       setCourses(coursesRes.data);
@@ -73,7 +91,44 @@ export default function Dashboard() {
       setIsLoading(false);
     }
   };
+  const handleDeleteClick = (course: Course) => {
+    setDeletingCourse(course);
+    setIsDeleteDialogOpen(true);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!deletingCourse) return;
+
+    setIsDeleting(true);
+    try {
+      // Make the delete API call using the slug
+      await useAxios.delete(`course/course-detail/${deletingCourse.slug}/`);
+
+      // Remove the course from the state
+      setCourses(
+        courses.filter(
+          (course) => course.course_id !== deletingCourse.course_id
+        )
+      );
+
+      // Show success message
+      Toast().fire({
+        title: `Course "${deletingCourse.title}" deleted successfully`,
+        icon: "success",
+      });
+    } catch (error) {
+      console.error("Error deleting course:", error);
+      Toast().fire({
+        title: "Failed to delete course",
+        icon: "error",
+      });
+    } finally {
+      // Reset state
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+      setDeletingCourse(null);
+    }
+  };
   useEffect(() => {
     fetchCourseData();
   }, []);
@@ -81,11 +136,11 @@ export default function Dashboard() {
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const query = event.target.value.toLowerCase();
     setSearchQuery(query);
-    
+
     if (query === "") {
       fetchCourseData();
     } else {
-      const filtered = courses.filter((c) => 
+      const filtered = courses.filter((c) =>
         c.title.toLowerCase().includes(query)
       );
       setCourses(filtered);
@@ -96,12 +151,12 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-b from-primaryCustom-300 to-primaryCustom-700">
       <div className="container mx-auto px-4 py-4 sm:py-8 max-w-7xl">
         <InstructorHeader />
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8 mt-4 sm:mt-8">
           <div className="lg:sticky lg:top-4 lg:self-start">
             <InstructorSidebar />
           </div>
-          
+
           <div className="lg:col-span-3 space-y-4 sm:space-y-6">
             <motion.div className="flex items-center gap-2 mb-2">
               <div className="h-10 w-10 rounded-full bg-buttonsCustom-100 flex items-center justify-center">
@@ -109,10 +164,12 @@ export default function Dashboard() {
               </div>
               <div>
                 <h4 className="text-xl font-bold text-gray-900">Dashboard</h4>
-                <p className="text-sm text-gray-500">Manage your courses and view insights</p>
+                <p className="text-sm text-gray-500">
+                  Manage your courses and view insights
+                </p>
               </div>
             </motion.div>
-            
+
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 backdrop-blur-sm border border-white/20 shadow-lg">
@@ -122,8 +179,12 @@ export default function Dashboard() {
                       <LayoutDashboard className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-amber-600">Total Courses</p>
-                      <h3 className="text-xl sm:text-2xl font-bold text-amber-700">{stats.total_courses}</h3>
+                      <p className="text-sm font-medium text-amber-600">
+                        Total Courses
+                      </p>
+                      <h3 className="text-xl sm:text-2xl font-bold text-amber-700">
+                        {stats.total_courses}
+                      </h3>
                     </div>
                   </div>
                 </CardContent>
@@ -136,8 +197,12 @@ export default function Dashboard() {
                       <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-rose-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-rose-600">Total Students</p>
-                      <h3 className="text-xl sm:text-2xl font-bold text-rose-700">{stats.total_students}</h3>
+                      <p className="text-sm font-medium text-rose-600">
+                        Total Students
+                      </p>
+                      <h3 className="text-xl sm:text-2xl font-bold text-rose-700">
+                        {stats.total_students}
+                      </h3>
                     </div>
                   </div>
                 </CardContent>
@@ -150,7 +215,9 @@ export default function Dashboard() {
                       <IndianRupee className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-green-600">Total Revenue</p>
+                      <p className="text-sm font-medium text-green-600">
+                        Total Revenue
+                      </p>
                       <h3 className="text-xl sm:text-2xl font-bold text-green-700">
                         ₹{stats.total_revenue?.toFixed(2)}
                       </h3>
@@ -167,9 +234,12 @@ export default function Dashboard() {
               <CardHeader className="p-4 sm:p-6 bg-gradient-to-r from-buttonsCustom-50/50 to-transparent border-b border-buttonsCustom-100">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <CardTitle className="text-lg sm:text-xl text-buttonsCustom-900">Courses</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl text-buttonsCustom-900">
+                      Courses
+                    </CardTitle>
                     <p className="text-sm text-buttonsCustom-500 mt-1">
-                      Manage your courses from here, search, view, edit or delete courses.
+                      Manage your courses from here, search, view, edit or
+                      delete courses.
                     </p>
                   </div>
                   <div className="relative w-full sm:w-64">
@@ -199,15 +269,21 @@ export default function Dashboard() {
                             <th className="px-6 py-3 text-left">Courses</th>
                             <th className="px-6 py-3 text-left">Enrolled</th>
                             <th className="px-6 py-3 text-left">Level</th>
-                            <th className="px-6 py-3 text-left">Platform Status</th>
-                            <th className="px-6 py-3 text-left">Course Status</th>
-                            <th className="px-6 py-3 text-left">Date Created</th>
+                            <th className="px-6 py-3 text-left">
+                              Platform Status
+                            </th>
+                            <th className="px-6 py-3 text-left">
+                              Course Status
+                            </th>
+                            <th className="px-6 py-3 text-left">
+                              Date Created
+                            </th>
                             <th className="px-6 py-3 text-left">Action</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
                           {courses.map((course) => (
-                            <motion.tr 
+                            <motion.tr
                               key={course.id}
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
@@ -225,7 +301,9 @@ export default function Dashboard() {
                                     />
                                   </div>
                                   <div>
-                                    <div className="font-medium text-gray-900">{course.title}</div>
+                                    <div className="font-medium text-gray-900">
+                                      {course.title}
+                                    </div>
                                     <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-500">
                                       <span>{course.language}</span>
                                       <span>•</span>
@@ -240,31 +318,40 @@ export default function Dashboard() {
                                 {course.students?.length || 0}
                               </td>
                               <td className="px-6 py-4">
-                                <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                                <Badge
+                                  variant="outline"
+                                  className="bg-green-100 text-green-800 border-green-200"
+                                >
                                   {course.level}
                                 </Badge>
                               </td>
                               <td className="px-6 py-4">
-                                <Badge 
-                                  variant="outline" 
+                                <Badge
+                                  variant="outline"
                                   className={`${
-                                    course.platform_status === "Published" ? "bg-green-100 text-green-800 border-green-200" :
-                                    course.platform_status === "Review" ? "bg-blue-100 text-blue-800 border-blue-200" :
-                                    course.platform_status === "Draft" ? "bg-gray-100 text-gray-800 border-gray-200" :
-                                    course.platform_status === "Reject" ? "bg-red-100 text-red-800 border-red-200" :
-                                    "bg-amber-100 text-amber-800 border-amber-200"
+                                    course.platform_status === "Published"
+                                      ? "bg-green-100 text-green-800 border-green-200"
+                                      : course.platform_status === "Review"
+                                      ? "bg-blue-100 text-blue-800 border-blue-200"
+                                      : course.platform_status === "Draft"
+                                      ? "bg-gray-100 text-gray-800 border-gray-200"
+                                      : course.platform_status === "Reject"
+                                      ? "bg-red-100 text-red-800 border-red-200"
+                                      : "bg-amber-100 text-amber-800 border-amber-200"
                                   }`}
                                 >
                                   {course.platform_status || "Unknown"}
                                 </Badge>
                               </td>
                               <td className="px-6 py-4">
-                                <Badge 
-                                  variant="outline" 
+                                <Badge
+                                  variant="outline"
                                   className={`${
-                                    course.teacher_course_status === "Published" ? "bg-green-100 text-green-800 border-green-200" :
-                                    course.teacher_course_status === "Draft" ? "bg-gray-100 text-gray-800 border-gray-200" :
-                                    "bg-amber-100 text-amber-800 border-amber-200"
+                                    course.teacher_course_status === "Published"
+                                      ? "bg-green-100 text-green-800 border-green-200"
+                                      : course.teacher_course_status === "Draft"
+                                      ? "bg-gray-100 text-gray-800 border-gray-200"
+                                      : "bg-amber-100 text-amber-800 border-amber-200"
                                   }`}
                                 >
                                   {course.teacher_course_status || "Unknown"}
@@ -274,15 +361,26 @@ export default function Dashboard() {
                                 {format(new Date(course.date), "dd MMM, yyyy")}
                               </td>
                               <td className="px-6 py-4">
-                                <div className="flex space-x-2">
-                                  <Button variant="outline" size="icon" className="h-8 w-8 text-buttonsCustom-600">
-                                    <Edit className="h-4 w-4" />
+                                <div className="flex space-x-2 pt-2 border-t border-gray-100">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1 h-8 text-buttonsCustom-600"
+                                    asChild
+                                  >
+                                    <Link
+                                      href={`/instructor/edit-course/${course.course_id}/`}
+                                    >
+                                      <Edit className="h-3.5 w-3.5 mr-1" />
+                                    </Link>
                                   </Button>
-                                  <Button variant="outline" size="icon" className="h-8 w-8 text-red-600">
-                                    <Trash className="h-4 w-4" />
-                                  </Button>
-                                  <Button variant="outline" size="icon" className="h-8 w-8 text-gray-600">
-                                    <Eye className="h-4 w-4" />
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1 h-8 text-red-600"
+                                    onClick={() => handleDeleteClick(course)}
+                                  >
+                                    <Trash className="h-3.5 w-3.5 mr-1" />
                                   </Button>
                                 </div>
                               </td>
@@ -312,7 +410,9 @@ export default function Dashboard() {
                               />
                             </div>
                             <div className="flex-grow">
-                              <div className="font-medium text-gray-900">{course.title}</div>
+                              <div className="font-medium text-gray-900">
+                                {course.title}
+                              </div>
                               <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-500">
                                 <span>{course.language}</span>
                                 <span>•</span>
@@ -322,61 +422,81 @@ export default function Dashboard() {
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="grid grid-cols-2 gap-2 text-xs mb-3">
                             <div>
-                              <span className="text-gray-500 block">Enrolled:</span>
-                              <span className="font-medium">{course.students?.length || 0}</span>
+                              <span className="text-gray-500 block">
+                                Enrolled:
+                              </span>
+                              <span className="font-medium">
+                                {course.students?.length || 0}
+                              </span>
                             </div>
                             <div>
                               <span className="text-gray-500 block">Date:</span>
-                              <span className="font-medium">{format(new Date(course.date), "dd MMM, yyyy")}</span>
+                              <span className="font-medium">
+                                {format(new Date(course.date), "dd MMM, yyyy")}
+                              </span>
                             </div>
                           </div>
-                          
+
                           <div className="flex flex-wrap gap-2 mb-3">
                             <div>
-                              <span className="text-gray-500 text-xs block mb-1">Platform:</span>
-                              <Badge 
-                                variant="outline" 
+                              <span className="text-gray-500 text-xs block mb-1">
+                                Platform:
+                              </span>
+                              <Badge
+                                variant="outline"
                                 className={`${
-                                  course.platform_status === "Published" ? "bg-green-100 text-green-800 border-green-200" :
-                                  course.platform_status === "Review" ? "bg-blue-100 text-blue-800 border-blue-200" :
-                                  course.platform_status === "Draft" ? "bg-gray-100 text-gray-800 border-gray-200" :
-                                  course.platform_status === "Reject" ? "bg-red-100 text-red-800 border-red-200" :
-                                  "bg-amber-100 text-amber-800 border-amber-200"
+                                  course.platform_status === "Published"
+                                    ? "bg-green-100 text-green-800 border-green-200"
+                                    : course.platform_status === "Review"
+                                    ? "bg-blue-100 text-blue-800 border-blue-200"
+                                    : course.platform_status === "Draft"
+                                    ? "bg-gray-100 text-gray-800 border-gray-200"
+                                    : course.platform_status === "Reject"
+                                    ? "bg-red-100 text-red-800 border-red-200"
+                                    : "bg-amber-100 text-amber-800 border-amber-200"
                                 }`}
                               >
                                 {course.platform_status || "Unknown"}
                               </Badge>
                             </div>
                             <div>
-                              <span className="text-gray-500 text-xs block mb-1">Status:</span>
-                              <Badge 
-                                variant="outline" 
+                              <span className="text-gray-500 text-xs block mb-1">
+                                Status:
+                              </span>
+                              <Badge
+                                variant="outline"
                                 className={`${
-                                  course.teacher_course_status === "Published" ? "bg-green-100 text-green-800 border-green-200" :
-                                  course.teacher_course_status === "Draft" ? "bg-gray-100 text-gray-800 border-gray-200" :
-                                  "bg-amber-100 text-amber-800 border-amber-200"
+                                  course.teacher_course_status === "Published"
+                                    ? "bg-green-100 text-green-800 border-green-200"
+                                    : course.teacher_course_status === "Draft"
+                                    ? "bg-gray-100 text-gray-800 border-gray-200"
+                                    : "bg-amber-100 text-amber-800 border-amber-200"
                                 }`}
                               >
                                 {course.teacher_course_status || "Unknown"}
                               </Badge>
                             </div>
                           </div>
-                          
+
                           <div className="flex space-x-2 pt-2 border-t border-gray-100">
-                            <Button variant="outline" size="sm" className="flex-1 h-8 text-buttonsCustom-600">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 h-8 text-buttonsCustom-600"
+                            >
                               <Edit className="h-3.5 w-3.5 mr-1" />
                               Edit
                             </Button>
-                            <Button variant="outline" size="sm" className="flex-1 h-8 text-red-600">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 h-8 text-red-600"
+                            >
                               <Trash className="h-3.5 w-3.5 mr-1" />
                               Delete
-                            </Button>
-                            <Button variant="outline" size="sm" className="flex-1 h-8 text-gray-600">
-                              <Eye className="h-3.5 w-3.5 mr-1" />
-                              View
                             </Button>
                           </div>
                         </motion.div>
@@ -386,7 +506,9 @@ export default function Dashboard() {
                 ) : (
                   <div className="text-center py-12 bg-white/80 backdrop-blur-sm rounded-lg border border-white/20 shadow-md">
                     <BookOpen className="h-12 w-12 mx-auto text-gray-300" />
-                    <h3 className="mt-4 text-lg font-medium text-gray-900">No courses found</h3>
+                    <h3 className="mt-4 text-lg font-medium text-gray-900">
+                      No courses found
+                    </h3>
                     <p className="mt-2 text-sm text-gray-500">
                       Create your first course to get started
                     </p>
@@ -397,6 +519,44 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+              Delete Course
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete{" "}
+              <span className="font-medium">{deletingCourse?.title}</span>?
+              <p className="mt-2 text-red-500">
+                This action cannot be undone. All course content, lectures, and
+                materials will be permanently removed.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+            >
+              {isDeleting ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                  Deleting...
+                </>
+              ) : (
+                "Delete Course"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

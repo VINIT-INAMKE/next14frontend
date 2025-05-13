@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtDecode } from "jwt-decode";
 
-const publicPaths = ["/", "/login", "/register", "/forgotpassword", "/create-new-password"];
+const publicPaths = ["/", "/login", "/register", "/forgotpassword", "/create-new-password", "/about-us", "/contact-us"];
 
 interface DecodedToken {
   token_type: string;
