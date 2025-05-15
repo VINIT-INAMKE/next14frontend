@@ -11,6 +11,9 @@ import {
   Lock,
   LogOut,
   Menu,
+  Award,
+  CheckSquare,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -35,6 +38,24 @@ const mainNavItems: NavItem[] = [
     href: "/student/wishlist/",
     label: "Wishlist",
     icon: Heart,
+  },
+];
+
+const certificatesNavItems: NavItem[] = [
+  {
+    href: "/student/certificates/",
+    label: "Certificates Dashboard",
+    icon: Award,
+  },
+  {
+    href: "/student/certificates/generate/",
+    label: "Generate Certificate",
+    icon: CheckSquare,
+  },
+  {
+    href: "/verify-certificate",
+    label: "Verify Certificate",
+    icon: Shield,
   },
 ];
 
@@ -74,6 +95,31 @@ function StudentSidebar() {
           <div>
             <ul className="space-y-1">
               {mainNavItems.map((item) => (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                      pathname === item.href
+                        ? "bg-buttonsCustom-50 text-buttonsCustom-600"
+                        : "text-gray-700 hover:bg-buttonsCustom-50/50 hover:text-buttonsCustom-600"
+                    )}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Certificates Navigation */}
+          <div>
+            <h3 className="px-3 text-sm font-semibold text-gray-900 mb-2">
+              Certificates
+            </h3>
+            <ul className="space-y-1">
+              {certificatesNavItems.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}

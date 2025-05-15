@@ -36,6 +36,9 @@ import {
   IndianRupee,
   LogOut,
   UserRound,
+  Award,
+  CheckSquare,
+  Shield,
 } from "lucide-react";
 
 function BaseHeader() {
@@ -84,7 +87,12 @@ function BaseHeader() {
     { path: "/student/wishlist/", text: "Wishlist", icon: <Heart className="h-4 w-4" /> },
     { path: "/student/question-answer/", text: "Q/A", icon: <MessageSquare className="h-4 w-4" /> },
     { path: "/student/profile/", text: "Profile", icon: <UserRound className="h-4 w-4" /> },
+    { path: "/student/certificates/", text: "Certificates Dashboard", icon: <Award className="h-4 w-4" /> },
+    { path: "/student/certificates/generate/", text: "Generate Certificate", icon: <CheckSquare className="h-4 w-4" /> },
+    { path: "/verify-certificate", text: "Verify Certificate", icon: <Shield className="h-4 w-4" /> },
   ];
+
+
 
   return (
     <header 

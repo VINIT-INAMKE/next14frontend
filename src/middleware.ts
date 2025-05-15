@@ -2,7 +2,26 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtDecode } from "jwt-decode";
 
-const publicPaths = ["/", "/login", "/register", "/forgotpassword", "/create-new-password", "/about-us", "/contact-us"];
+const publicPaths = [
+  "/", 
+  "/login", 
+  "/register", 
+  "/forgotpassword", 
+  "/create-new-password", 
+  "/about-us", 
+  "/contact-us"
+];
+
+// Add verify-certificate route to public paths
+export const isPublicPath = (path: string) => {
+  // Check exact matches first
+  if (publicPaths.includes(path)) return true;
+  
+  // Check if the path starts with /verify-certificate/
+  if (path.startsWith('/verify-certificate/')) return true;
+  
+  return false;
+};
 
 interface DecodedToken {
   token_type: string;
@@ -18,7 +37,7 @@ interface DecodedToken {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl; 
-  const isPublicPath = publicPaths.includes(pathname);
+  const pathIsPublic = isPublicPath(pathname);
   const token = request.cookies.get("access_token")?.value;
 
   if (token) {
@@ -39,7 +58,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Allow access to public paths regardless of authentication
-  if (isPublicPath) {
+  if (pathIsPublic) {
     return NextResponse.next();
   }
 
