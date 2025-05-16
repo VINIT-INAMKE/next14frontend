@@ -9,7 +9,9 @@ const publicPaths = [
   "/forgotpassword", 
   "/create-new-password", 
   "/about-us", 
-  "/contact-us"
+  "/contact-us",
+  "/unauthorized",
+  "/logout"
 ];
 
 // Add verify-certificate route to public paths

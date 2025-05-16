@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Trash2, Plus, PlusCircle, Info, Save, FileVideo, BookOpen, ArrowLeft } from "lucide-react";
 import Image from "next/image";
@@ -115,7 +115,7 @@ export default function CourseEdit() {
     console.log("Course image value:", course.image);
   }, [imagePreview, course.image]);
 
-  const fetchCourseDetail = async () => {
+  const fetchCourseDetail = useCallback(async () => {
     try {
       const [categoriesRes, courseRes] = await Promise.all([
         useAxios.get(`course/category/`),
@@ -135,11 +135,11 @@ export default function CourseEdit() {
       console.error("Error fetching course details:", error);
       toast.error("Failed to load course details");
     }
-    };
-
-    useEffect(() => {
-        fetchCourseDetail();
   }, [courseId]);
+
+  useEffect(() => {
+    fetchCourseDetail();
+  }, [fetchCourseDetail]);
 
   const handleCourseInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>

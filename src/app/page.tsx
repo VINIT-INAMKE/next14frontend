@@ -99,6 +99,14 @@ export default function Home() {
   const { isLoggedIn } = useAuthStore();
   const router = useRouter();
 
+  const handleCourseClick = (slug: string) => {
+    if (isLoggedIn()) {
+      router.push(`/course-details/${slug}`);
+    } else {
+      router.push('/unauthorized');
+    }
+  };
+
   const fetchCourse = async () => {
     setIsLoading(true);
     try {
@@ -114,10 +122,6 @@ export default function Home() {
   useEffect(() => {
     fetchCourse();
   }, []);
-
-  if (!isLoggedIn()) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primaryCustom-300 to-primaryCustom-900">
@@ -254,9 +258,7 @@ export default function Home() {
                     <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200 bg-white/90 backdrop-blur-sm border border-white/20">
                       <div
                         className="relative aspect-video cursor-pointer"
-                        onClick={() =>
-                          router.push(`/course-details/${course.slug}`)
-                        }
+                        onClick={() => handleCourseClick(course.slug)}
                       >
                         <Image
                           src={course.image || "/placeholder-course.jpg"}
@@ -336,9 +338,7 @@ export default function Home() {
                           <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200 bg-white/90 backdrop-blur-sm border border-white/20">
                             <div
                               className="relative aspect-video cursor-pointer"
-                              onClick={() =>
-                                router.push(`/course-details/${course.slug}`)
-                              }
+                              onClick={() => handleCourseClick(course.slug)}
                             >
                               <Image
                                 src={course.image || "/placeholder-course.jpg"}

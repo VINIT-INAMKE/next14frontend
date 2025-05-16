@@ -124,13 +124,6 @@ function CourseDetail(): React.ReactElement {
     }
   }, [slug]);
 
-  useEffect(() => {
-    if (slug) {
-      fetchCourse();
-      checkWishlistStatus();
-    }
-  }, [slug, fetchCourse]);
-
   const checkWishlistStatus = useCallback(async (): Promise<void> => {
     if (!userId) return;
     
@@ -145,6 +138,13 @@ function CourseDetail(): React.ReactElement {
       console.error("Error checking wishlist status:", error);
     }
   }, [userId, slug]);
+
+  useEffect(() => {
+    if (slug) {
+      fetchCourse();
+      checkWishlistStatus();
+    }
+  }, [slug, fetchCourse, checkWishlistStatus]);
 
   const toggleWishlist = async (): Promise<void> => {
     if (!userId || !course) return;

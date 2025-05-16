@@ -6,13 +6,14 @@ import Link from "next/link";
 import { useAuthStore } from "@/store/auth";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff, CheckCircle2, XCircle as XCircleLucide } from "lucide-react";
 import { 
   LockClosedIcon, 
   ArrowPathIcon, 
   UserIcon, 
   AtSymbolIcon,
   WalletIcon,
-  FingerPrintIcon 
+  FingerPrintIcon
 } from "@heroicons/react/24/outline";
 import { jwtDecode } from "jwt-decode";
 import Cookie from "js-cookie";
@@ -29,6 +30,14 @@ interface DecodedToken {
   teacher_id: number;
 }
 
+interface ValidationErrors {
+  fullname?: string;
+  email?: string;
+  password?: string;
+  password2?: string;
+  wallet_address?: string;
+}
+
 function Register() {
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
@@ -37,8 +46,19 @@ function Register() {
   const [wallet_address, setWallet_Address] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { isLoggedIn } = useAuthStore();
   const router = useRouter();
+
+  const [passwordValidation, setPasswordValidation] = useState({
+    minLength: false,
+    hasUppercase: false,
+    hasLowercase: false,
+    hasNumber: false,
+    hasSpecial: false
+  });
 
   useEffect(() => {
     if (isLoggedIn()) {
@@ -46,10 +66,120 @@ function Register() {
     }
   }, [isLoggedIn, router]);
 
+  const validatePassword = (password: string): string[] => {
+    const errors: string[] = [];
+    const validation = {
+      minLength: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSpecial: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+
+    setPasswordValidation(validation);
+
+    if (!validation.minLength) {
+      errors.push("Password must be at least 8 characters long");
+    }
+    if (!validation.hasUppercase) {
+      errors.push("Password must contain at least one uppercase letter");
+    }
+    if (!validation.hasLowercase) {
+      errors.push("Password must contain at least one lowercase letter");
+    }
+    if (!validation.hasNumber) {
+      errors.push("Password must contain at least one number");
+    }
+    if (!validation.hasSpecial) {
+      errors.push("Password must contain at least one special character");
+    }
+    return errors;
+  };
+
+  const validateEmail = (email: string): string[] => {
+    const errors: string[] = [];
+    if (!email) {
+      errors.push("Email is required");
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.push("Please enter a valid email address");
+    }
+    return errors;
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    
+    const errors = validatePassword(newPassword);
+    if (errors.length > 0) {
+      setValidationErrors(prev => ({ ...prev, password: errors.join(", ") }));
+    } else {
+      setValidationErrors(prev => ({ ...prev, password: undefined }));
+    }
+
+    if (password2) {
+      if (newPassword !== password2) {
+        setValidationErrors(prev => ({ ...prev, password2: "Passwords do not match" }));
+      } else {
+        setValidationErrors(prev => ({ ...prev, password2: undefined }));
+      }
+    }
+  };
+
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const confirmPass = e.target.value;
+    setPassword2(confirmPass);
+    
+    if (confirmPass !== password) {
+      setValidationErrors(prev => ({ ...prev, password2: "Passwords do not match" }));
+    } else {
+      setValidationErrors(prev => ({ ...prev, password2: undefined }));
+    }
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    
+    const errors = validateEmail(newEmail);
+    if (errors.length > 0) {
+      setValidationErrors(prev => ({ ...prev, email: errors.join(", ") }));
+    } else {
+      setValidationErrors(prev => ({ ...prev, email: undefined }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+
+    // Validate all fields before submission
+    const emailErrors = validateEmail(email);
+    const passwordErrors = validatePassword(password);
+    const newValidationErrors: ValidationErrors = {};
+
+    if (emailErrors.length > 0) {
+      newValidationErrors.email = emailErrors.join(", ");
+    }
+    if (passwordErrors.length > 0) {
+      newValidationErrors.password = passwordErrors.join(", ");
+    }
+    if (password !== password2) {
+      newValidationErrors.password2 = "Passwords do not match";
+    }
+    if (!fullname.trim()) {
+      newValidationErrors.fullname = "Full name is required";
+    }
+    if (!wallet_address.trim()) {
+      newValidationErrors.wallet_address = "Wallet address is required";
+    }
+
+    if (Object.keys(newValidationErrors).length > 0) {
+      setValidationErrors(newValidationErrors);
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const { error } = await register(
@@ -137,7 +267,7 @@ function Register() {
             </AnimatePresence>
 
             {/* Registration Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Full Name */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -161,6 +291,9 @@ function Register() {
                     required
                   />
                 </div>
+                {validationErrors.fullname && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.fullname}</p>
+                )}
               </motion.div>
 
               {/* Email */}
@@ -179,13 +312,16 @@ function Register() {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={handleEmailChange}
                     className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-lg bg-white/70 
                             placeholder-gray-400 focus:ring-2 focus:ring-buttonsCustom-300 focus:border-transparent"
                     placeholder="your@email.com"
                     required
                   />
                 </div>
+                {validationErrors.email && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.email}</p>
+                )}
               </motion.div>
 
               {/* Wallet Address */}
@@ -211,6 +347,9 @@ function Register() {
                     required
                   />
                 </div>
+                {validationErrors.wallet_address && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.wallet_address}</p>
+                )}
               </motion.div>
 
               {/* Password */}
@@ -218,6 +357,7 @@ function Register() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
+                className="space-y-2"
               >
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Password
@@ -227,14 +367,71 @@ function Register() {
                     <LockClosedIcon className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-lg bg-white/70 
+                    onChange={handlePasswordChange}
+                    className="block w-full pl-10 pr-10 py-3 border border-gray-200 rounded-lg bg-white/70 
                             placeholder-gray-400 focus:ring-2 focus:ring-buttonsCustom-300 focus:border-transparent"
                     placeholder="••••••••"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Password Requirements */}
+                <div className="mt-2 space-y-2 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className={`flex items-center gap-2 ${passwordValidation.minLength ? 'text-green-600' : 'text-gray-600'}`}>
+                      {passwordValidation.minLength ? (
+                        <CheckCircle2 className="h-4 w-4" />
+                      ) : (
+                        <XCircleLucide className="h-4 w-4" />
+                      )}
+                      <span>8+ characters</span>
+                    </div>
+                    <div className={`flex items-center gap-2 ${passwordValidation.hasUppercase ? 'text-green-600' : 'text-gray-600'}`}>
+                      {passwordValidation.hasUppercase ? (
+                        <CheckCircle2 className="h-4 w-4" />
+                      ) : (
+                        <XCircleLucide className="h-4 w-4" />
+                      )}
+                      <span>Uppercase letter</span>
+                    </div>
+                    <div className={`flex items-center gap-2 ${passwordValidation.hasLowercase ? 'text-green-600' : 'text-gray-600'}`}>
+                      {passwordValidation.hasLowercase ? (
+                        <CheckCircle2 className="h-4 w-4" />
+                      ) : (
+                        <XCircleLucide className="h-4 w-4" />
+                      )}
+                      <span>Lowercase letter</span>
+                    </div>
+                    <div className={`flex items-center gap-2 ${passwordValidation.hasNumber ? 'text-green-600' : 'text-gray-600'}`}>
+                      {passwordValidation.hasNumber ? (
+                        <CheckCircle2 className="h-4 w-4" />
+                      ) : (
+                        <XCircleLucide className="h-4 w-4" />
+                      )}
+                      <span>Number</span>
+                    </div>
+                    <div className={`flex items-center gap-2 ${passwordValidation.hasSpecial ? 'text-green-600' : 'text-gray-600'}`}>
+                      {passwordValidation.hasSpecial ? (
+                        <CheckCircle2 className="h-4 w-4" />
+                      ) : (
+                        <XCircleLucide className="h-4 w-4" />
+                      )}
+                      <span>Special character</span>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
 
@@ -252,15 +449,29 @@ function Register() {
                     <LockClosedIcon className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     value={password2}
-                    onChange={(e) => setPassword2(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-lg bg-white/70 
+                    onChange={handleConfirmPasswordChange}
+                    className="block w-full pl-10 pr-10 py-3 border border-gray-200 rounded-lg bg-white/70 
                             placeholder-gray-400 focus:ring-2 focus:ring-buttonsCustom-300 focus:border-transparent"
                     placeholder="••••••••"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
                 </div>
+                {validationErrors.password2 && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.password2}</p>
+                )}
               </motion.div>
 
               {/* Submit Button */}
@@ -271,9 +482,9 @@ function Register() {
               >
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || Object.keys(validationErrors).length > 0}
                   className={`w-full flex items-center justify-center py-3 px-4 rounded-lg shadow-md transition-all
-                          ${isLoading 
+                          ${isLoading || Object.keys(validationErrors).length > 0
                             ? 'bg-buttonsCustom-400 cursor-not-allowed' 
                             : 'bg-gradient-to-r from-buttonsCustom-700 to-buttonsCustom-600 hover:from-buttonsCustom-800 hover:to-buttonsCustom-700'
                           }`}
@@ -300,50 +511,17 @@ function Register() {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200" />
               </div>
-              <div className="relative flex justify-center">
-                <span className="px-2 bg-white text-sm text-gray-500">
-                  Or register with
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">
+                  Already have an account?{" "}
+                  <Link href="/login" className="text-buttonsCustom-600 hover:text-buttonsCustom-700 font-medium">
+                    Sign in
+                  </Link>
                 </span>
               </div>
             </motion.div>
-
-            {/* Social Login */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 }}
-            >
-              <button
-                className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 
-                        text-gray-700 rounded-lg p-3 hover:bg-gray-50 transition-colors shadow-sm"
-              >
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path
-                    d="M12.24 10.285V14.4h6.806c-.275 1.765-2.056 5.174-6.806 5.174-4.095 0-7.439-3.389-7.439-7.574s3.345-7.574 7.439-7.574c2.33 0 3.891.989 4.785 1.849l3.254-3.138C18.189 1.186 15.479 0 12.24 0c-6.635 0-12 5.365-12 12s5.365 12 12 12c6.926 0 11.52-4.869 11.52-11.726 0-.788-.085-1.39-.189-1.989H12.24z"
-                    fill="currentColor"
-                  />
-                </svg>
-                <span>Continue with Google</span>
-              </button>
-            </motion.div>
           </div>
         </div>
-
-        {/* Login Link */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="mt-6 text-center text-sm text-buttonsCustom-800"
-        >
-          <span className="opacity-80">Already have an identity? </span>
-          <Link
-            href="/login"
-            className="font-medium text-buttonsCustom-900 hover:underline"
-          >
-            Sign in to your account
-          </Link>
-        </motion.div>
       </motion.div>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import { motion } from "framer-motion";
 import { 
   User, 
@@ -45,7 +45,7 @@ export default function Profile() {
   const [imagePreview, setImagePreview] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const response = await useAxios.get(`user/profile/${UserData()?.user_id}/`);
       setProfile(response.data);
@@ -58,11 +58,11 @@ export default function Profile() {
         title: "Failed to load profile data",
       });
     }
-  };
+  }, [setProfile]);
 
   useEffect(() => {
     fetchProfile();
-  }, [setProfile]);
+  }, [fetchProfile]);
 
   const handleProfileChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setProfileData({
