@@ -114,14 +114,22 @@ function Register() {
     if (errors.length > 0) {
       setValidationErrors(prev => ({ ...prev, password: errors.join(", ") }));
     } else {
-      setValidationErrors(prev => ({ ...prev, password: undefined }));
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.password;
+        return newErrors;
+      });
     }
 
     if (password2) {
       if (newPassword !== password2) {
         setValidationErrors(prev => ({ ...prev, password2: "Passwords do not match" }));
       } else {
-        setValidationErrors(prev => ({ ...prev, password2: undefined }));
+        setValidationErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.password2;
+          return newErrors;
+        });
       }
     }
   };
@@ -133,7 +141,11 @@ function Register() {
     if (confirmPass !== password) {
       setValidationErrors(prev => ({ ...prev, password2: "Passwords do not match" }));
     } else {
-      setValidationErrors(prev => ({ ...prev, password2: undefined }));
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.password2;
+        return newErrors;
+      });
     }
   };
 
@@ -145,7 +157,41 @@ function Register() {
     if (errors.length > 0) {
       setValidationErrors(prev => ({ ...prev, email: errors.join(", ") }));
     } else {
-      setValidationErrors(prev => ({ ...prev, email: undefined }));
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.email;
+        return newErrors;
+      });
+    }
+  };
+
+  const handleFullnameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newFullname = e.target.value;
+    setFullname(newFullname);
+    
+    if (!newFullname.trim()) {
+      setValidationErrors(prev => ({ ...prev, fullname: "Full name is required" }));
+    } else {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.fullname;
+        return newErrors;
+      });
+    }
+  };
+
+  const handleWalletAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newWalletAddress = e.target.value;
+    setWallet_Address(newWalletAddress);
+    
+    if (!newWalletAddress.trim()) {
+      setValidationErrors(prev => ({ ...prev, wallet_address: "Wallet address is required" }));
+    } else {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.wallet_address;
+        return newErrors;
+      });
     }
   };
 
@@ -284,7 +330,7 @@ function Register() {
                   <input
                     type="text"
                     value={fullname}
-                    onChange={(e) => setFullname(e.target.value)}
+                    onChange={handleFullnameChange}
                     className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-lg bg-white/70 
                             placeholder-gray-400 focus:ring-2 focus:ring-buttonsCustom-300 focus:border-transparent"
                     placeholder="John Doe"
@@ -340,7 +386,7 @@ function Register() {
                   <input
                     type="text"
                     value={wallet_address}
-                    onChange={(e) => setWallet_Address(e.target.value)}
+                    onChange={handleWalletAddressChange}
                     className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-lg bg-white/70 
                             placeholder-gray-400 focus:ring-2 focus:ring-buttonsCustom-300 focus:border-transparent"
                     placeholder="addr1q9..."
@@ -482,9 +528,9 @@ function Register() {
               >
                 <button
                   type="submit"
-                  disabled={isLoading || Object.keys(validationErrors).length > 0}
+                  disabled={isLoading || !fullname.trim() || !email.trim() || !password.trim() || !password2.trim() || !wallet_address.trim() || Object.keys(validationErrors).length > 0}
                   className={`w-full flex items-center justify-center py-3 px-4 rounded-lg shadow-md transition-all
-                          ${isLoading || Object.keys(validationErrors).length > 0
+                          ${isLoading || !fullname.trim() || !email.trim() || !password.trim() || !password2.trim() || !wallet_address.trim() || Object.keys(validationErrors).length > 0
                             ? 'bg-buttonsCustom-400 cursor-not-allowed' 
                             : 'bg-gradient-to-r from-buttonsCustom-700 to-buttonsCustom-600 hover:from-buttonsCustom-800 hover:to-buttonsCustom-700'
                           }`}

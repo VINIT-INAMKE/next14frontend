@@ -436,9 +436,9 @@ export default function Home() {
                 whileHover={{ x: 5 }}
                 className="border-l-4 border-buttonsCustom-700 pl-4"
               >
-                <h3 className="text-xl font-semibold mb-2 text-white">{path.title}</h3>
-                <p className="text-buttonsCustom-100 mb-4">{path.description}</p>
-                <div className="flex items-center text-sm text-buttonsCustom-300">
+                <h3 className="text-xl font-semibold mb-2 text-buttonsCustom-900">{path.title}</h3>
+                <p className="text-buttonsCustom-700 mb-4">{path.description}</p>
+                <div className="flex items-center text-sm text-buttonsCustom-600">
                   {path.icon}
                   <span>{path.details}</span>
                 </div>
