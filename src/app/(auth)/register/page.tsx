@@ -12,11 +12,12 @@ import {
   ArrowPathIcon, 
   UserIcon, 
   AtSymbolIcon,
-  WalletIcon,
+ 
   FingerPrintIcon
 } from "@heroicons/react/24/outline";
 import { jwtDecode } from "jwt-decode";
 import Cookie from "js-cookie";
+import { CardanoWallet, useWallet } from "@meshsdk/react";
 
 interface DecodedToken {
   token_type: string;
@@ -28,6 +29,7 @@ interface DecodedToken {
   email: string;
   username: string;
   teacher_id: number;
+  wallet_address: string;
 }
 
 interface ValidationErrors {
@@ -51,6 +53,7 @@ function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { isLoggedIn } = useAuthStore();
   const router = useRouter();
+  const { connected, wallet } = useWallet();
 
   const [passwordValidation, setPasswordValidation] = useState({
     minLength: false,
@@ -65,6 +68,29 @@ function Register() {
       router.push("/");
     }
   }, [isLoggedIn, router]);
+
+  useEffect(() => {
+    const getWalletAddress = async () => {
+      if (connected && wallet) {
+        try {
+          const usedAddresses = await wallet.getUsedAddresses();
+          if (usedAddresses.length > 0) {
+            setWallet_Address(usedAddresses[0]);
+            // Clear wallet address validation error if it exists
+            setValidationErrors(prev => {
+              const newErrors = { ...prev };
+              delete newErrors.wallet_address;
+              return newErrors;
+            });
+          }
+        } catch (err) {
+          console.error("Error getting wallet address:", err);
+        }
+      }
+    };
+
+    getWalletAddress();
+  }, [connected, wallet]);
 
   const validatePassword = (password: string): string[] => {
     const errors: string[] = [];
@@ -180,20 +206,20 @@ function Register() {
     }
   };
 
-  const handleWalletAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newWalletAddress = e.target.value;
-    setWallet_Address(newWalletAddress);
+  // const handleWalletAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const newWalletAddress = e.target.value;
+  //   setWallet_Address(newWalletAddress);
     
-    if (!newWalletAddress.trim()) {
-      setValidationErrors(prev => ({ ...prev, wallet_address: "Wallet address is required" }));
-    } else {
-      setValidationErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors.wallet_address;
-        return newErrors;
-      });
-    }
-  };
+  //   if (!newWalletAddress.trim()) {
+  //     setValidationErrors(prev => ({ ...prev, wallet_address: "Wallet address is required" }));
+  //   } else {
+  //     setValidationErrors(prev => {
+  //       const newErrors = { ...prev };
+  //       delete newErrors.wallet_address;
+  //       return newErrors;
+  //     });
+  //   }
+  // };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -370,29 +396,29 @@ function Register() {
                 )}
               </motion.div>
 
-              {/* Wallet Address */}
+              {/* Wallet Connection */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
               >
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Cardano Wallet Address
+                  Connect Your Cardano Wallet
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <WalletIcon className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    value={wallet_address}
-                    onChange={handleWalletAddressChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-lg bg-white/70 
-                            placeholder-gray-400 focus:ring-2 focus:ring-buttonsCustom-300 focus:border-transparent"
-                    placeholder="addr1q9..."
-                    required
+                  <CardanoWallet 
+                    label="Connect Wallet"
+                    isDark={false}
+                    onConnected={() => {
+                      console.log("Wallet connected!");
+                    }}
                   />
                 </div>
+                {wallet_address && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    Connected Address: {wallet_address.slice(0, 20)}...{wallet_address.slice(-8)}
+                  </p>
+                )}
                 {validationErrors.wallet_address && (
                   <p className="mt-1 text-sm text-red-600">{validationErrors.wallet_address}</p>
                 )}

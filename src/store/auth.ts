@@ -12,6 +12,7 @@ interface DecodedToken {
   email: string;
   username: string;
   teacher_id: number;
+  wallet_address: string;
 }
 
 interface AuthState {

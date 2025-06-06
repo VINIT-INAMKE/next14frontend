@@ -6,6 +6,8 @@ import { Toaster } from 'react-hot-toast';
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { CartProvider } from "@/providers/CartProvider";
+import { MeshProvider } from "@/providers/MeshProvider";
+import "@meshsdk/react/styles.css";
 // import Script from "next/script";
 
 const geistSans = localFont({
@@ -53,18 +55,20 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Toaster position="top-right" />
-        <CartProvider>
-          <MainWrapper>
-            <Header />
-            {/* <Script
-              src="https://checkout.razorpay.com/v1/checkout.js"
-              strategy="afterInteractive"
-            /> */}
-            <div className="h-16"></div>
-            {children}
-            <Footer />
-          </MainWrapper>
-        </CartProvider>
+        <MeshProvider>
+          <CartProvider>
+            <MainWrapper>
+              <Header />
+              {/* <Script
+                src="https://checkout.razorpay.com/v1/checkout.js"
+                strategy="afterInteractive"
+              /> */}
+              <div className="h-16"></div>
+              {children}
+              <Footer />
+            </MainWrapper>
+          </CartProvider>
+        </MeshProvider>
       </body>
     </html>
   );

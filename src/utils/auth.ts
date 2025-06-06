@@ -31,6 +31,7 @@ interface DecodedToken {
   email: string;
   username: string;
   teacher_id: number;
+  wallet_address: string;
 }
 
 export const login = async (
@@ -89,7 +90,7 @@ export const register = async (
   } catch (error: unknown) {
     let errorMessage = "Something went wrong";
     if (error instanceof AxiosError && error.response?.data) {
-      const errors = [];
+      const errors: string[] = [];
       if (error.response.data.full_name) {
         errors.push(error.response.data.full_name);
       }
