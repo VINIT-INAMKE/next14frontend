@@ -71,8 +71,14 @@ export default function BaseHeader() {
     const checkWalletAddress = async () => {
       if (wallet) {
         try {
+          // Check if the wallet object has the required methods
+          if (typeof wallet.getUsedAddresses !== 'function') {
+            console.error("Wallet does not support getUsedAddresses method");
+            return;
+          }
+
           const usedAddresses = await wallet.getUsedAddresses();
-          if (usedAddresses.length > 0) {
+          if (usedAddresses && usedAddresses.length > 0) {
             const currentAddress = usedAddresses[0];
             
             if (allUserData?.wallet_address && allUserData.wallet_address !== currentAddress) {
@@ -84,6 +90,7 @@ export default function BaseHeader() {
           }
         } catch (err) {
           console.error("Error getting wallet address:", err);
+          setAddressMismatch(false);
         }
       }
     };

@@ -63,6 +63,36 @@ function Register() {
     hasSpecial: false
   });
 
+  const getWalletAddress = async () => {
+    if (connected && wallet) {
+      try {
+        // Check if the wallet object has the required methods
+        if (typeof wallet.getChangeAddress !== 'function') {
+          console.error("Wallet does not support getChangeAddress method");
+          return;
+        }
+
+        const changeAddress = await wallet.getChangeAddress();
+        if (changeAddress) {
+          setWallet_Address(changeAddress);
+          // Clear wallet address validation error if it exists
+          setValidationErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors.wallet_address;
+            return newErrors;
+          });
+        }
+      } catch (err) {
+        console.error("Error getting wallet address:", err);
+        setWallet_Address("");
+        setValidationErrors(prev => ({
+          ...prev,
+          wallet_address: "Failed to get wallet address. Please try again."
+        }));
+      }
+    }
+  };
+
   useEffect(() => {
     if (isLoggedIn()) {
       router.push("/");
@@ -70,25 +100,6 @@ function Register() {
   }, [isLoggedIn, router]);
 
   useEffect(() => {
-    const getWalletAddress = async () => {
-      if (connected && wallet) {
-        try {
-          const usedAddresses = await wallet.getUsedAddresses();
-          if (usedAddresses.length > 0) {
-            setWallet_Address(usedAddresses[0]);
-            // Clear wallet address validation error if it exists
-            setValidationErrors(prev => {
-              const newErrors = { ...prev };
-              delete newErrors.wallet_address;
-              return newErrors;
-            });
-          }
-        } catch (err) {
-          console.error("Error getting wallet address:", err);
-        }
-      }
-    };
-
     getWalletAddress();
   }, [connected, wallet]);
 
@@ -411,6 +422,10 @@ function Register() {
                     isDark={false}
                     onConnected={() => {
                       console.log("Wallet connected!");
+                      // Trigger wallet address fetch when connected
+                      if (wallet) {
+                        getWalletAddress();
+                      }
                     }}
                   />
                 </div>
