@@ -254,6 +254,8 @@ export default function Checkout() {
             Toast().fire({ icon: "success", title: "Payment Successful!" });
             
             // Redirect to payment success page
+
+            
             router.push(`/payment-success?order_id=${order.oid}`);
           } catch (err) {
             console.error("Verification failed", err);

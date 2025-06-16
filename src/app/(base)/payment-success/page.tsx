@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import apiInstance from "@/utils/axios";
+import UserData from "@/views/plugins/UserData";
+import { MINT_API_BASE_URL } from "@/utils/constants";
+import axios, { AxiosError } from "axios";
 
 interface Course {
   id: number;
@@ -24,18 +27,24 @@ interface Order {
   id: number;
   order_items: {
     course: Course;
+    oid: string;
   }[];
   total: string;
   oid: string;
   date: string;
   payment_status: string;
+  enrollment_id: string;
 }
 
 function PaymentSuccessContent() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [nftMinted, setNftMinted] = useState(false);
+  const [mintingLoading, setMintingLoading] = useState(false);
+  const hasAttemptedMint = useRef(false);
   const searchParams = useSearchParams();
   const orderId = searchParams.get("order_id");
+  const userData = UserData();
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -53,6 +62,74 @@ function PaymentSuccessContent() {
 
     fetchOrderDetails();
   }, [orderId]);
+
+  const handleMintNFT = async () => {
+    if (!order || !userData || mintingLoading || hasAttemptedMint.current) return;
+
+    hasAttemptedMint.current = true;
+    setMintingLoading(true);
+    try {
+      const courseDetailsResponse = await apiInstance.get(
+        `student/course-detail/${userData.user_id}/${order.enrollment_id}/`
+      );
+
+      const mintRequestData = {
+        courseId: courseDetailsResponse.data.course.course_id,
+        userId: userData.user_id,
+        enrollmentId: courseDetailsResponse.data.enrollment_id,
+        destinationAddress: courseDetailsResponse.data.user.wallet_address,
+        image: courseDetailsResponse.data.course.image,
+        prefix: courseDetailsResponse.data.course.slug
+      };
+
+      const mintResponse = await axios.post(`${MINT_API_BASE_URL}api/mint`, JSON.stringify(mintRequestData), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 30000
+      });
+
+      // Send minting response to our backend
+      const backendRequestData = {
+        enrollment_id: mintResponse.data.enrollmentId || order.enrollment_id,
+        policy_id: mintResponse.data.policyId || "",
+        asset_id: mintResponse.data.assetId || "",
+        asset_name: mintResponse.data.assetName || "",
+        tx_hash: mintResponse.data.txHash || "",
+        image: mintResponse.data.image || courseDetailsResponse.data.course.image
+      };
+
+      try {
+        await apiInstance.post('nft/mint/', backendRequestData);
+        setNftMinted(true);
+      } catch (error) {
+        if (error instanceof AxiosError) {
+          console.error('Error saving NFT minting details to backend:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+            requestData: backendRequestData
+          });
+        } else {
+          console.error('Error saving NFT minting details to backend:', error);
+        }
+      }
+
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        console.error('Error minting NFT:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        });
+      } else {
+        console.error('Error minting NFT:', error);
+      }
+    } finally {
+      setMintingLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -157,6 +234,8 @@ function PaymentSuccessContent() {
                       <span>{item.course.level}</span>
                       <span>•</span>
                       <span>{item.course.language}</span>
+
+
                     </div>
                     
                   </div>
@@ -173,7 +252,29 @@ function PaymentSuccessContent() {
             >
               Go to Dashboard
             </Link>
-            
+            <button
+              onClick={handleMintNFT}
+              disabled={mintingLoading || nftMinted || hasAttemptedMint.current}
+              className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white ${
+                nftMinted || hasAttemptedMint.current
+                  ? 'bg-green-600 cursor-not-allowed' 
+                  : 'bg-buttonsCustom-700 hover:bg-buttonsCustom-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-buttonsCustom-500'
+              }`}
+            >
+              {mintingLoading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Minting...
+                </>
+              ) : nftMinted ? (
+                'NFT Minted'
+              ) : (
+                'Mint NFT'
+              )}
+            </button>
           </div>
         </div>
       </div>
