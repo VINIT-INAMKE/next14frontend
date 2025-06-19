@@ -15,6 +15,9 @@ import {
 import moment from "moment";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import axios, { AxiosError } from "axios";
+import apiInstance from "@/utils/axios";
+import { MINT_API_BASE_URL } from "@/utils/constants";
 
 import StudentHeader from "@/components/student/Header";
 import StudentSidebar from "@/components/student/Sidebar";
@@ -87,6 +90,8 @@ export default function Courses() {
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [nftStatus, setNftStatus] = useState<Record<string, 'minted' | 'not_minted' | 'minting'>>({});
+  const [mintAttempted, setMintAttempted] = useState<Record<string, boolean>>({});
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -96,6 +101,24 @@ export default function Courses() {
       );
       setCourses(response.data);
       setFilteredCourses(response.data);
+      // Batch check NFT status for each course only once
+      const checks = await Promise.all(
+        response.data.map(async (course: Course) => {
+          try {
+            const res = await apiInstance.get(`nft/asset-id/${course.enrollment_id}/`);
+            if (res.data.asset_id) {
+              return [course.enrollment_id, 'minted'] as const;
+            }
+          } catch {}
+          return [course.enrollment_id, 'not_minted'] as const;
+        })
+      );
+      // Build the status object
+      const statusObj: Record<string, 'minted' | 'not_minted'> = {};
+      checks.forEach(([enrollment_id, status]) => {
+        statusObj[enrollment_id] = status;
+      });
+      setNftStatus(statusObj);
     } catch (error) {
       console.error("Error fetching courses:", error);
     } finally {
@@ -122,6 +145,67 @@ export default function Courses() {
     const query = event.target.value;
     setSearchQuery(query);
     filterCourses(query);
+  };
+
+  const handleMintNFT = async (course: Course) => {
+    if (nftStatus[course.enrollment_id] === 'minting' || nftStatus[course.enrollment_id] === 'minted' || mintAttempted[course.enrollment_id]) return;
+    setNftStatus((prev) => ({ ...prev, [course.enrollment_id]: 'minting' }));
+    setMintAttempted((prev) => ({ ...prev, [course.enrollment_id]: true }));
+    try {
+      const courseDetailsResponse = await apiInstance.get(
+        `student/course-detail/${UserData()?.user_id}/${course.enrollment_id}/`
+      );
+      const mintRequestData = {
+        courseId: courseDetailsResponse.data.course.course_id,
+        userId: UserData()?.user_id,
+        enrollmentId: courseDetailsResponse.data.enrollment_id,
+        destinationAddress: courseDetailsResponse.data.user.wallet_address,
+        image: courseDetailsResponse.data.course.image,
+        prefix: courseDetailsResponse.data.course.slug
+      };
+      const mintResponse = await axios.post(`${MINT_API_BASE_URL}api/mint`, JSON.stringify(mintRequestData), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 30000
+      });
+      const backendRequestData = {
+        enrollment_id: mintResponse.data.enrollmentId || course.enrollment_id,
+        policy_id: mintResponse.data.policyId || "",
+        asset_id: mintResponse.data.assetId || "",
+        asset_name: mintResponse.data.assetName || "",
+        tx_hash: mintResponse.data.txHash || "",
+        image: mintResponse.data.image || courseDetailsResponse.data.course.image
+      };
+      try {
+        await apiInstance.post('nft/mint/', backendRequestData);
+        setNftStatus((prev) => ({ ...prev, [course.enrollment_id]: 'minted' }));
+      } catch (error) {
+        if (error instanceof AxiosError) {
+          console.error('Error saving NFT minting details to backend:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+            requestData: backendRequestData
+          });
+        } else {
+          console.error('Error saving NFT minting details to backend:', error);
+        }
+        setNftStatus((prev) => ({ ...prev, [course.enrollment_id]: 'not_minted' }));
+      }
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        console.error('Error minting NFT:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        });
+      } else {
+        console.error('Error minting NFT:', error);
+      }
+      setNftStatus((prev) => ({ ...prev, [course.enrollment_id]: 'not_minted' }));
+    }
   };
 
   const fadeInUp = {
@@ -277,31 +361,60 @@ export default function Courses() {
                                 </TableCell>
                                 <TableCell className="px-6 py-4 text-sm text-gray-700">
                                   <div className="flex items-center gap-1.5 text-gray-600">
-                                    <BookOpenCheck className="h-4 w-4 text-green-500" />
-                                    {course.completed_lesson.length} Completed
+                                    {nftStatus[course.enrollment_id] === 'minted' ? (
+                                      <>
+                                        <BookOpenCheck className="h-4 w-4 text-green-500" />
+                                        Minted
+                                      </>
+                                    ) : nftStatus[course.enrollment_id] === 'minting' ? (
+                                      <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-buttonsCustom-600 mr-2" />
+                                        Minting...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <BookOpenCheck className="h-4 w-4 text-gray-400" />
+                                        Not Minted
+                                      </>
+                                    )}
                                   </div>
                                 </TableCell>
                                 <TableCell className="px-6 py-4">
-                                  <Button
-                                    variant={
-                                      course.completed_lesson.length > 0
-                                        ? "default"
-                                        : "secondary"
-                                    }
-                                    size="sm"
-                                    className="flex items-center gap-2"
-                                    onClick={() =>
-                                      router.push(
-                                        `/student/course/${course.enrollment_id}`
-                                      )
-                                    }
-                                  >
-                                    {course.completed_lesson.length > 0
-                                      ? "Continue"
-                                      : "Start"}{" "}
-                                    Course
-                                    <ArrowRight className="h-4 w-4" />
-                                  </Button>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant={
+                                        course.completed_lesson.length > 0
+                                          ? "default"
+                                          : "secondary"
+                                      }
+                                      size="sm"
+                                      className="flex items-center gap-2"
+                                      onClick={() =>
+                                        router.push(
+                                          `/student/course/${course.enrollment_id}`
+                                        )
+                                      }
+                                    >
+                                      {course.completed_lesson.length > 0
+                                        ? "Continue"
+                                        : "Start"} {" "}
+                                      Course
+                                      <ArrowRight className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="flex items-center gap-2"
+                                      disabled={nftStatus[course.enrollment_id] === 'minted' || nftStatus[course.enrollment_id] === 'minting' || mintAttempted[course.enrollment_id]}
+                                      onClick={() => handleMintNFT(course)}
+                                    >
+                                      {nftStatus[course.enrollment_id] === 'minted'
+                                        ? 'NFT Minted'
+                                        : nftStatus[course.enrollment_id] === 'minting'
+                                        ? 'Minting...'
+                                        : 'Mint NFT'}
+                                    </Button>
+                                  </div>
                                 </TableCell>
                               </motion.tr>
                             ))
