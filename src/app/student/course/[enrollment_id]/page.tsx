@@ -26,18 +26,20 @@ import {
   File,
   Download,
 } from "lucide-react";
+import { CardanoWallet, useWallet, useAssets } from "@meshsdk/react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import apiInstance from "@/utils/axios";
 
 import StudentHeader from "@/components/student/Header";
 import StudentSidebar from "@/components/student/Sidebar";
 import {
-  Card,
   CardHeader,
   CardTitle,
   CardDescription,
-  CardContent,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -61,7 +63,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import useAxios from "@/utils/axios";
 import UserData from "@/views/plugins/UserData";
 import Toast from "@/views/plugins/Toast";
 
@@ -167,9 +168,9 @@ const getFileType = (url: string): "video" | "pdf" | "document" | "other" => {
   return "other";
 };
 
-export default function CourseDetail() {
+function CourseDetailContent(props: { course: Course | null, /* add other props as needed */ }) {
   const params = useParams();
-  const [course, setCourse] = useState<Course | null>(null);
+  const [course, setCourse] = useState<Course | null>(props.course);
   const [variantItem, setVariantItem] = useState<VariantItem | null>(null);
   const [completionPercentage, setCompletionPercentage] = useState(0);
   const [markAsCompletedStatus, setMarkAsCompletedStatus] = useState<
@@ -208,7 +209,7 @@ export default function CourseDetail() {
 
   const fetchCourseDetail = useCallback(async () => {
     try {
-      const response = await useAxios.get(
+      const response = await apiInstance.get(
         `student/course-detail/${UserData()?.user_id}/${params.enrollment_id}/`
       );
       setCourse(response.data);
@@ -267,7 +268,7 @@ export default function CourseDetail() {
     };
 
     try {
-      await useAxios.post(`student/course-completed/`, requestData);
+      await apiInstance.post(`student/course-completed/`, requestData);
 
       fetchCourseDetail();
       setMarkAsCompletedStatus({
@@ -315,7 +316,7 @@ export default function CourseDetail() {
     formdata.append("note", (createNote.note || "") as string);
 
     try {
-      await useAxios.post(
+      await apiInstance.post(
         `student/course-note/${UserData()?.user_id}/${params.enrollment_id}/`,
         formdata
       );
@@ -346,7 +347,7 @@ export default function CourseDetail() {
     );
 
     try {
-      await useAxios.patch(
+      await apiInstance.patch(
         `student/course-note-detail/${UserData()?.user_id}/${
           params.enrollment_id
         }/${noteId}/`,
@@ -365,7 +366,7 @@ export default function CourseDetail() {
 
   const handleDeleteNote = async (noteId: number) => {
     try {
-      await useAxios.delete(
+      await apiInstance.delete(
         `student/course-note-detail/${UserData()?.user_id}/${
           params.enrollment_id
         }/${noteId}/`
@@ -399,7 +400,7 @@ export default function CourseDetail() {
     formdata.append("message", (createMessage.message || "") as string);
 
     try {
-      await useAxios.post(
+      await apiInstance.post(
         `student/question-answer-list-create/${course?.course?.id}/`,
         formdata
       );
@@ -423,7 +424,7 @@ export default function CourseDetail() {
     formdata.append("qa_id", String(selectedConversation?.qa_id || 0));
 
     try {
-      const response = await useAxios.post(
+      const response = await apiInstance.post(
         `student/question-answer-message-create/`,
         formdata
       );
@@ -470,7 +471,7 @@ export default function CourseDetail() {
     formdata.append("review", createReview.review);
 
     try {
-      await useAxios.post(`student/rate-course/`, formdata);
+      await apiInstance.post(`student/rate-course/`, formdata);
       fetchCourseDetail();
       Toast().fire({
         icon: "success",
@@ -497,7 +498,7 @@ export default function CourseDetail() {
     );
 
     try {
-      await useAxios.patch(
+      await apiInstance.patch(
         `student/review-detail/${UserData()?.user_id}/${studentReview?.id}/`,
         formdata
       );
@@ -1470,4 +1471,135 @@ export default function CourseDetail() {
       </Dialog>
     </div>
   );
+}
+
+export default function CourseDetail() {
+  const params = useParams();
+  const { connected } = useWallet();
+  const assets = useAssets();
+  const [assetId, setAssetId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [hasAccess, setHasAccess] = useState<boolean>(false);
+  const [nftNotFound, setNftNotFound] = useState(false);
+  const [course, setCourse] = useState<Course | null>(null);
+
+  // 1. Fetch asset ID from backend
+  useEffect(() => {
+    if (!connected) return;
+    setLoading(true);
+    setNftNotFound(false);
+    apiInstance
+      .get(`nft/asset-id/${params.enrollment_id}/`)
+      .then((res) => {
+        if (res.data.asset_id) {
+          setAssetId(res.data.asset_id);
+        } else {
+          setNftNotFound(true);
+        }
+      })
+      .catch(() => {
+        setNftNotFound(true);
+      })
+      .finally(() => setLoading(false));
+  }, [connected, params.enrollment_id]);
+
+  // 2. Check if wallet has the asset
+  useEffect(() => {
+    if (!assetId || !assets) {
+      setHasAccess(false);
+      return;
+    }
+    const found = assets.some((asset) => asset.unit.startsWith(assetId));
+    setHasAccess(found);
+  }, [assetId, assets]);
+
+  // 3. Fetch course details only if access is granted
+  useEffect(() => {
+    if (!hasAccess) return;
+    const fetchCourseDetail = async () => {
+      try {
+        const response = await apiInstance.get(
+          `student/course-detail/${params.user_id || ''}/${params.enrollment_id}/`
+        );
+        setCourse(response.data);
+      } catch {
+        // Optionally handle error
+      }
+    };
+    fetchCourseDetail();
+  }, [hasAccess, params.enrollment_id, params.user_id]);
+
+  // 4. UI logic
+  if (!connected) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <h2 className="text-xl font-bold">Connect Your Wallet</h2>
+              <p>Please connect your wallet to verify course access</p>
+              <div className="flex justify-center pt-4">
+                <CardanoWallet />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Checking NFT access...</p>
+      </div>
+    );
+  }
+
+  if (nftNotFound || !assetId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <h2 className="text-xl font-bold">Access Required</h2>
+              <p>You don&apos;t have access to this course yet.</p>
+              <div className="pt-4">
+                <Link href="">
+                  <Button className="bg-red-500 hover:bg-red-600 text-white">
+                    Purchase Course NFT
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <h2 className="text-xl font-bold">Access Required</h2>
+              <p>Your wallet does not hold the required NFT for this course.</p>
+              <div className="pt-4">
+                <Link href="">
+                  <Button className="bg-red-500 hover:bg-red-600 text-white">
+                    Purchase Course NFT
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // If all checks pass, render the original course page content
+  return <CourseDetailContent course={course} />;
 }

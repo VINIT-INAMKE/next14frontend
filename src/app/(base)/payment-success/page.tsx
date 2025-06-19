@@ -41,6 +41,7 @@ function PaymentSuccessContent() {
   const [loading, setLoading] = useState(true);
   const [nftMinted, setNftMinted] = useState(false);
   const [mintingLoading, setMintingLoading] = useState(false);
+  const [checkingAsset, setCheckingAsset] = useState(true);
   const hasAttemptedMint = useRef(false);
   const searchParams = useSearchParams();
   const orderId = searchParams.get("order_id");
@@ -49,7 +50,6 @@ function PaymentSuccessContent() {
   useEffect(() => {
     const fetchOrderDetails = async () => {
       if (!orderId) return;
-      
       try {
         const response = await apiInstance.get(`order/checkout/${orderId}/`);
         setOrder(response.data);
@@ -59,20 +59,38 @@ function PaymentSuccessContent() {
         setLoading(false);
       }
     };
-
     fetchOrderDetails();
   }, [orderId]);
 
+  // Check for NFT asset ID after order is loaded
+  useEffect(() => {
+    const checkAsset = async () => {
+      if (!order) return;
+      setCheckingAsset(true);
+      try {
+        const res = await apiInstance.get(`nft/asset-id/${order.enrollment_id}/`);
+        if (res.data.asset_id) {
+          setNftMinted(true);
+        } else {
+          setNftMinted(false);
+        }
+      } catch {
+        setNftMinted(false);
+      } finally {
+        setCheckingAsset(false);
+      }
+    };
+    if (order) checkAsset();
+  }, [order]);
+
   const handleMintNFT = async () => {
     if (!order || !userData || mintingLoading || hasAttemptedMint.current) return;
-
     hasAttemptedMint.current = true;
     setMintingLoading(true);
     try {
       const courseDetailsResponse = await apiInstance.get(
         `student/course-detail/${userData.user_id}/${order.enrollment_id}/`
       );
-
       const mintRequestData = {
         courseId: courseDetailsResponse.data.course.course_id,
         userId: userData.user_id,
@@ -81,7 +99,6 @@ function PaymentSuccessContent() {
         image: courseDetailsResponse.data.course.image,
         prefix: courseDetailsResponse.data.course.slug
       };
-
       const mintResponse = await axios.post(`${MINT_API_BASE_URL}api/mint`, JSON.stringify(mintRequestData), {
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +106,6 @@ function PaymentSuccessContent() {
         },
         timeout: 30000
       });
-
       // Send minting response to our backend
       const backendRequestData = {
         enrollment_id: mintResponse.data.enrollmentId || order.enrollment_id,
@@ -99,7 +115,6 @@ function PaymentSuccessContent() {
         tx_hash: mintResponse.data.txHash || "",
         image: mintResponse.data.image || courseDetailsResponse.data.course.image
       };
-
       try {
         await apiInstance.post('nft/mint/', backendRequestData);
         setNftMinted(true);
@@ -115,7 +130,6 @@ function PaymentSuccessContent() {
           console.error('Error saving NFT minting details to backend:', error);
         }
       }
-
     } catch (error) {
       if (error instanceof AxiosError) {
         console.error('Error minting NFT:', {
@@ -131,7 +145,7 @@ function PaymentSuccessContent() {
     }
   };
 
-  if (loading) {
+  if (loading || checkingAsset) {
     return (
       <div className="min-h-screen bg-primaryCustom-100 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-buttonsCustom-700"></div>
@@ -234,10 +248,7 @@ function PaymentSuccessContent() {
                       <span>{item.course.level}</span>
                       <span>•</span>
                       <span>{item.course.language}</span>
-
-
                     </div>
-                    
                   </div>
                 </div>
               ))}
