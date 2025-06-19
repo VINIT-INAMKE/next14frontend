@@ -363,7 +363,7 @@ export default function Courses() {
                                   <div className="flex items-center gap-1.5 text-gray-600">
                                     {nftStatus[course.enrollment_id] === 'minted' ? (
                                       <>
-                                        <BookOpenCheck className="h-4 w-4 text-green-500" />
+                                    <BookOpenCheck className="h-4 w-4 text-green-500" />
                                         Minted
                                       </>
                                     ) : nftStatus[course.enrollment_id] === 'minting' ? (
@@ -381,26 +381,26 @@ export default function Courses() {
                                 </TableCell>
                                 <TableCell className="px-6 py-4">
                                   <div className="flex gap-2">
-                                    <Button
-                                      variant={
-                                        course.completed_lesson.length > 0
-                                          ? "default"
-                                          : "secondary"
-                                      }
-                                      size="sm"
-                                      className="flex items-center gap-2"
-                                      onClick={() =>
-                                        router.push(
-                                          `/student/course/${course.enrollment_id}`
-                                        )
-                                      }
-                                    >
-                                      {course.completed_lesson.length > 0
-                                        ? "Continue"
+                                  <Button
+                                    variant={
+                                      course.completed_lesson.length > 0
+                                        ? "default"
+                                        : "secondary"
+                                    }
+                                    size="sm"
+                                    className="flex items-center gap-2"
+                                    onClick={() =>
+                                      router.push(
+                                        `/student/course/${course.enrollment_id}`
+                                      )
+                                    }
+                                  >
+                                    {course.completed_lesson.length > 0
+                                      ? "Continue"
                                         : "Start"} {" "}
-                                      Course
-                                      <ArrowRight className="h-4 w-4" />
-                                    </Button>
+                                    Course
+                                    <ArrowRight className="h-4 w-4" />
+                                  </Button>
                                     <Button
                                       variant="outline"
                                       size="sm"

@@ -18,6 +18,7 @@ import {
   BookOpen,
   HelpCircle,
   Loader2,
+  Link as LinkIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,6 +60,21 @@ interface VerificationSuccess {
   message: string;
 }
 
+interface CertificateNFT {
+  id: number;
+  certificate: number;
+  certificate_id: string;
+  policy_id: string;
+  asset_id: string;
+  asset_name: string;
+  tx_hash: string;
+  image: string;
+  minted_at: string;
+  user: number;
+  verified: boolean;
+  message: string;
+}
+
 interface VerificationFailure {
   verified: false;
   message: string;
@@ -72,6 +88,7 @@ export default function CertificateVerificationPage() {
   const [certificateIdInput, setCertificateIdInput] = useState(certificateId as string || "");
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationResult, setVerificationResult] = useState<VerificationResult | null>(null);
+  const [certificateNFT, setCertificateNFT] = useState<CertificateNFT | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
@@ -88,12 +105,24 @@ export default function CertificateVerificationPage() {
     
     setIsVerifying(true);
     setVerificationResult(null);
+    setCertificateNFT(null);
     setIsInitialLoad(false);
     
     try {
       console.log(certId);
       const response = await useAxios.get(`/verify-certificate/${certId}/`);
       setVerificationResult(response.data);
+      
+      // If certificate verification is successful, also fetch blockchain data
+      if (response.data.verified) {
+        try {
+          const nftResponse = await useAxios.get(`/certificate-nft/by-certificate/${certId}/`);
+          setCertificateNFT(nftResponse.data);
+        } catch {
+          console.log("No blockchain data found for this certificate");
+          // NFT data is optional, so we don't set an error state
+        }
+      }
     } catch (error: unknown) {
       console.error("Verification error:", error);
       const errorWithResponse = error as { response?: { data?: { message?: string } } };
@@ -259,8 +288,6 @@ export default function CertificateVerificationPage() {
                     <span className="text-sm text-gray-700">Issued to: <span className="font-medium">{certificate.student_name}</span></span>
                   </motion.div>
                   
-              
-                  
                   <motion.div 
                     className="flex items-center"
                     whileHover={{ x: 5 }}
@@ -298,7 +325,7 @@ export default function CertificateVerificationPage() {
                   </motion.div>
                 </div>
                 
-                <div className="mt-4">
+                <div className="mt-4 flex flex-wrap gap-2">
                   <div className="flex items-center">
                     <div className={`px-3 py-1 rounded-full text-xs font-medium flex items-center ${
                       certificate.status === 'active' 
@@ -316,10 +343,116 @@ export default function CertificateVerificationPage() {
                       {certificate.status === 'active' ? 'Certificate Active' : certificate.status === 'revoked' ? 'Certificate Revoked' : 'Certificate Expired'}
                     </div>
                   </div>
+                  
+                  {certificateNFT && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: 0.5 }}
+                      className="flex items-center"
+                    >
+                      <Badge className="bg-blue-100 text-blue-800 px-3 py-1 text-xs font-medium flex items-center">
+                        <LinkIcon className="h-3 w-3 mr-1" />
+                        Verified on Blockchain
+                      </Badge>
+                    </motion.div>
+                  )}
                 </div>
               </motion.div>
             </div>
           </div>
+          
+          {/* Blockchain Details Section */}
+          {certificateNFT && (
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-6"
+            >
+              <div className="flex items-center mb-4">
+                <LinkIcon className="h-5 w-5 text-blue-600 mr-2" />
+                <h3 className="text-lg font-semibold text-blue-900">Blockchain Verification</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100">
+                    <span className="text-sm font-medium text-gray-700">NFT Asset ID:</span>
+                    <span className="text-sm font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                      {certificateNFT.asset_id.slice(0, 8)}...{certificateNFT.asset_id.slice(-8)}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100">
+                    <span className="text-sm font-medium text-gray-700">Policy ID:</span>
+                    <span className="text-sm font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                      {certificateNFT.policy_id.slice(0, 8)}...{certificateNFT.policy_id.slice(-8)}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100">
+                    <span className="text-sm font-medium text-gray-700">Asset Name:</span>
+                    <span className="text-sm font-medium text-blue-600">
+                      {certificateNFT.asset_name}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100">
+                    <span className="text-sm font-medium text-gray-700">Minted Date:</span>
+                    <span className="text-sm text-blue-600">
+                      {new Date(certificateNFT.minted_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100">
+                    <span className="text-sm font-medium text-gray-700">Transaction Hash:</span>
+                    <span className="text-sm font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                      {certificateNFT.tx_hash.slice(0, 8)}...{certificateNFT.tx_hash.slice(-8)}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100">
+                    <span className="text-sm font-medium text-gray-700">Blockchain Status:</span>
+                    <Badge className="bg-green-100 text-green-800">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Verified
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              
+              {certificateNFT.image && (
+                <div className="mt-6 text-center">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">NFT Image</h4>
+                  <div className="inline-block p-2 bg-white rounded-lg border border-blue-200">
+                    <Image
+                      src={certificateNFT.image}
+                      alt="Certificate NFT"
+                      width={200}
+                      height={200}
+                      className="rounded-lg object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+              
+              <div className="mt-6 p-4 bg-blue-100 rounded-lg">
+                <div className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5 mr-2" />
+                  <div>
+                    <h4 className="text-sm font-medium text-blue-900 mb-1">Blockchain Verification Confirmed</h4>
+                    <p className="text-sm text-blue-700">
+                      This certificate has been verified on the Cardano blockchain. The NFT is permanently stored and cannot be altered, ensuring the authenticity and immutability of this credential.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
           
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-all duration-300">
             <motion.h3 
@@ -696,23 +829,7 @@ export default function CertificateVerificationPage() {
           </motion.div>
         )}
       </main>
-      
-      <footer className="bg-white border-t border-gray-200 py-6">
-        <div className="container mx-auto px-4 text-center text-sm text-gray-600">
-          <p>© {new Date().getFullYear()} Learning Platform. All rights reserved.</p>
-          <div className="mt-2 flex justify-center gap-4">
-            <Link href="/privacy-policy" className="text-buttonsCustom-500 hover:text-buttonsCustom-600">
-              Privacy Policy
-            </Link>
-            <Link href="/terms-of-service" className="text-buttonsCustom-500 hover:text-buttonsCustom-600">
-              Terms of Service
-            </Link>
-            <Link href="/contact-us" className="text-buttonsCustom-500 hover:text-buttonsCustom-600">
-              Contact Us
-            </Link>
-          </div>
-        </div>
-      </footer>
+     
     </div>
   );
-} 
+}

@@ -11,6 +11,8 @@ interface DecodedToken {
   email: string;
   username: string;
   teacher_id: number;
+  wallet_address: string;
+
 }
 
 function UserData(): DecodedToken | null {

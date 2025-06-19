@@ -31,6 +31,9 @@ import UserData from "@/views/plugins/UserData";
 import StudentHeader from "@/components/student/Header";
 import StudentSidebar from "@/components/student/Sidebar";
 import Toast from "@/views/plugins/Toast";
+import axios, { AxiosError } from "axios";
+import { MINT_API_BASE_URL } from "@/utils/constants";
+import apiInstance from "@/utils/axios";
 
 interface CertificateDetail {
   id: number;
@@ -63,12 +66,29 @@ interface CertificateDetail {
   course_description: string;
 }
 
-
+interface CertificateNftVerification {
+  id: number;
+  certificate: number;
+  policy_id: string;
+  asset_id: string;
+  asset_name: string;
+  tx_hash: string;
+  image: string;
+  minted_at: string;
+  user: number;
+  verified: boolean;
+  message: string;
+}
 
 export default function CertificateDetailPage() {
   const [certificate, setCertificate] = useState<CertificateDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [minting, setMinting] = useState(false);
+  const [minted, setMinted] = useState(false);
+  const [mintAttempted, setMintAttempted] = useState(false);
+  const [checkingNft, setCheckingNft] = useState(true);
+  const [nftVerification, setNftVerification] = useState<CertificateNftVerification | null>(null);
   const { certificateId } = useParams();
   const certificateRef = useRef<HTMLDivElement>(null);
 
@@ -97,6 +117,25 @@ export default function CertificateDetailPage() {
     };
 
     fetchCertificate();
+  }, [certificateId]);
+
+  // Check if certificate NFT exists (active or inactive)
+  useEffect(() => {
+    const checkCertificateNft = async () => {
+      if (!certificateId) return;
+      setCheckingNft(true);
+      try {
+        const res = await apiInstance.get(`certificate-nft/by-certificate/${certificateId}/`);
+        setMinted(true);
+        setNftVerification(res.data);
+      } catch {
+        setMinted(false);
+        setNftVerification(null);
+      } finally {
+        setCheckingNft(false);
+      }
+    };
+    checkCertificateNft();
   }, [certificateId]);
 
   const handleDownload = async () => {
@@ -168,6 +207,76 @@ export default function CertificateDetailPage() {
         icon: "success",
         title: "Certificate link copied to clipboard!",
       });
+    }
+  };
+
+  // Mint Certificate NFT logic
+  const handleMintCertificateNFT = async () => {
+    if (!certificate || minting || minted || mintAttempted) return;
+    setMinting(true);
+    setMintAttempted(true);
+    try {
+      const userId = UserData()?.user_id;
+      const destinationAddress = UserData()?.wallet_address;
+      const mintRequestData = {
+        certificateId: certificate.certificate_id,
+        courseId: String(certificate.course.id),
+        userId: String(userId),
+        destinationAddress: destinationAddress,
+        image: "https://web3lmsfrontendcardano.vercel.app/certificateimage.svg",
+        prefix: certificate.certificate_id
+      };
+      const mintResponse = await axios.post(`${MINT_API_BASE_URL}api/mint-certificate`, JSON.stringify(mintRequestData), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 30000
+      });
+      // Post mint result to backend
+      const backendRequestData = {
+        certificate_id: mintResponse.data.certificateId,
+        policy_id: mintResponse.data.policyId,
+        asset_id: mintResponse.data.assetId,
+        asset_name: mintResponse.data.assetName,
+        tx_hash: mintResponse.data.txHash,
+        image: mintResponse.data.image
+      };
+      try {
+        await apiInstance.post('certificate-nft/mint/', backendRequestData);
+      } catch (error) {
+        if (error instanceof AxiosError) {
+          console.error('Error saving certificate NFT minting details to backend:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+            requestData: backendRequestData
+          });
+        } else {
+          console.error('Error saving certificate NFT minting details to backend:', error);
+        }
+      }
+      setMinted(true);
+      Toast().fire({
+        icon: "success",
+        title: "Certificate NFT minted successfully!"
+      });
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        console.error('Error minting Certificate NFT:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        });
+      } else {
+        console.error('Error minting Certificate NFT:', error);
+      }
+      Toast().fire({
+        icon: "error",
+        title: "Failed to mint Certificate NFT. Please try again."
+      });
+    } finally {
+      setMinting(false);
     }
   };
 
@@ -306,6 +415,47 @@ export default function CertificateDetailPage() {
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Share certificate</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={handleMintCertificateNFT}
+                      disabled={isLoading || minting || minted || mintAttempted || checkingNft}
+                      className={
+                        minted || mintAttempted
+                          ? "bg-green-600 text-white cursor-not-allowed"
+                          : "bg-buttonsCustom-600 hover:bg-buttonsCustom-700"
+                      }
+                    >
+                      {minting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Minting NFT...
+                        </>
+                      ) : checkingNft ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Checking NFT...
+                        </>
+                      ) : minted ? (
+                        <>
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          NFT Minted
+                        </>
+                      ) : (
+                        <>
+                          <Award className="h-4 w-4 mr-2" />
+                          Mint Certificate NFT
+                        </>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Mint your certificate as an NFT on Cardano</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -491,10 +641,21 @@ export default function CertificateDetailPage() {
                             style={{ paddingTop: "32px" }}
                           >
                             <div className="flex items-center space-x-2">
-                              <div className="flex items-center space-x-2 bg-green-50 text-green-600 px-3 py-1 rounded-full">
-                                <CheckCircle className="h-4 w-4" />
-                                <span className="text-sm font-medium">Verified on Cardano Blockchain</span>
-                              </div>
+                              {/* NFT Verification Badge - At bottom near QR code */}
+                              {minted && (
+                                <div className="flex flex-col items-start space-y-2">
+                                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200 shadow-sm">
+                                    <CheckCircle className="h-4 w-4 mr-1 text-green-500" />
+                                    Linked with the Cardano Blockchain
+                                  </span>
+                                  {/* Show Asset ID from verification response if available */}
+                                  {nftVerification?.asset_id && (
+                                    <div className="text-xs text-gray-600 bg-gray-100 border border-gray-200 rounded px-2 py-1 break-all max-w-xs">
+                                      <span className="font-semibold text-gray-700">Asset ID:</span> {nftVerification.asset_id.slice(0, 10)}..........{nftVerification.asset_id.slice(-10)}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                             <div>
                               <QRCodeSVG 
