@@ -154,15 +154,19 @@ export default function Courses() {
     try {
       const courseDetailsResponse = await apiInstance.get(
         `student/course-detail/${UserData()?.user_id}/${course.enrollment_id}/`
-      );
+      ); 
+
       const mintRequestData = {
-        courseId: courseDetailsResponse.data.course.course_id,
-        userId: UserData()?.user_id,
-        enrollmentId: courseDetailsResponse.data.enrollment_id,
+
+        courseId: String(courseDetailsResponse.data.course.course_id),
+        userId: String(UserData()?.user_id),
+        enrollmentId: String(courseDetailsResponse.data.enrollment_id),
         destinationAddress: courseDetailsResponse.data.user.wallet_address,
         image: courseDetailsResponse.data.course.image,
         prefix: courseDetailsResponse.data.course.slug
       };
+
+      
       const mintResponse = await axios.post(`${MINT_API_BASE_URL}api/mint`, JSON.stringify(mintRequestData), {
         headers: {
           'Content-Type': 'application/json',
