@@ -92,9 +92,9 @@ function PaymentSuccessContent() {
         `student/course-detail/${userData.user_id}/${order.enrollment_id}/`
       );
       const mintRequestData = {
-        courseId: courseDetailsResponse.data.course.course_id,
-        userId: userData.user_id,
-        enrollmentId: courseDetailsResponse.data.enrollment_id,
+        courseId: String(courseDetailsResponse.data.course.course_id),
+        userId: String(userData.user_id),
+        enrollmentId: String(courseDetailsResponse.data.enrollment_id),
         destinationAddress: courseDetailsResponse.data.user.wallet_address,
         image: courseDetailsResponse.data.course.image,
         prefix: courseDetailsResponse.data.course.slug
