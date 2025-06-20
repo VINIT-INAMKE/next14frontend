@@ -36,6 +36,10 @@ interface CourseOrder {
   date: string;
 }
 
+// Platform fee constant
+const PLATFORM_FEE_PERCENT = 20;
+const getNetEarning = (amount: number) => amount * (1 - PLATFORM_FEE_PERCENT / 100);
+
 export default function Orders() {
   const [orders, setOrders] = useState<CourseOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +52,7 @@ export default function Orders() {
         const response = await useAxios.get(`teacher/course-order-list/${UserData()?.teacher_id}/`);
         setOrders(response.data);
         
-        // Calculate total revenue
+        // Calculate total revenue (gross and net)
         const total = response.data.reduce((sum: number, order: CourseOrder) => {
           const price = typeof order.price === 'number' ? order.price : parseFloat(order.price) || 0;
           return sum + price;
@@ -72,10 +76,21 @@ export default function Orders() {
            orderDate.getFullYear() === currentDate.getFullYear();
   });
 
-  // Calculate current month's revenue
+  // Calculate current month's revenue (gross and net)
   const currentMonthRevenue = currentMonthOrders.reduce((sum, order) => {
     const price = typeof order.price === 'number' ? order.price : parseFloat(order.price) || 0;
     return sum + price;
+  }, 0);
+
+  // Net revenue calculations
+  const totalNetRevenue = orders.reduce((sum, order) => {
+    const price = typeof order.price === 'number' ? order.price : parseFloat(order.price) || 0;
+    return sum + getNetEarning(price);
+  }, 0);
+
+  const currentMonthNetRevenue = currentMonthOrders.reduce((sum, order) => {
+    const price = typeof order.price === 'number' ? order.price : parseFloat(order.price) || 0;
+    return sum + getNetEarning(price);
   }, 0);
 
   const fadeInUp = {
@@ -134,6 +149,12 @@ export default function Orders() {
                         <ArrowUpRight className="h-3 w-3 mr-1" />
                         <span>All time earnings</span>
                       </p>
+                      {/* Net Earning */}
+                      {!isLoading && (
+                        <p className="text-xs text-green-700 mt-1">
+                          Net after 20% fee: <span className="font-semibold">₹{totalNetRevenue.toFixed(2)}</span>
+                        </p>
+                      )}
                     </div>
                     <div className="p-2 bg-green-200/50 rounded-lg">
                       <IndianRupee className="h-5 w-5 text-green-700" />
@@ -158,6 +179,12 @@ export default function Orders() {
                         <Calendar className="h-3 w-3 mr-1" />
                         <span>Current month</span>
                       </p>
+                      {/* Net Earning */}
+                      {!isLoading && (
+                        <p className="text-xs text-buttonsCustom-700 mt-1">
+                          Net after 20% fee: <span className="font-semibold">₹{currentMonthNetRevenue.toFixed(2)}</span>
+                        </p>
+                      )}
                     </div>
                     <div className="p-2 bg-buttonsCustom-200/50 rounded-lg">
                       <TrendingUp className="h-5 w-5 text-buttonsCustom-700" />
@@ -234,9 +261,14 @@ export default function Orders() {
                                     </div>
                                   </TableCell>
                                   <TableCell>
-                                    <div className="flex items-center text-green-700 font-medium">
-                                      <IndianRupee className="h-3.5 w-3.5 mr-1" />
-                                      {order.price}
+                                    <div className="flex flex-col gap-1">
+                                      <div className="flex items-center text-green-700 font-medium">
+                                        <IndianRupee className="h-3.5 w-3.5 mr-1" />
+                                        {order.price}
+                                      </div>
+                                      <div className="text-xs text-green-700">
+                                        Net: ₹{getNetEarning(typeof order.price === 'number' ? order.price : parseFloat(order.price) || 0).toFixed(2)}
+                                      </div>
                                     </div>
                                   </TableCell>
                                   <TableCell>
@@ -277,10 +309,15 @@ export default function Orders() {
                                 </Badge>
                               </div>
                               <div className="flex justify-between items-center text-sm">
-                                <div className="flex items-center text-green-700 font-medium">
-                                  <CreditCard className="h-3.5 w-3.5 mr-1.5" />
-                                  <IndianRupee className="h-3.5 w-3.5" />
-                                  {order.price}
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center text-green-700 font-medium">
+                                    <CreditCard className="h-3.5 w-3.5 mr-1.5" />
+                                    <IndianRupee className="h-3.5 w-3.5" />
+                                    {order.price}
+                                  </div>
+                                  <div className="text-xs text-green-700">
+                                    Net: ₹{getNetEarning(typeof order.price === 'number' ? order.price : parseFloat(order.price) || 0).toFixed(2)}
+                                  </div>
                                 </div>
                                 <div className="flex items-center text-gray-600">
                                   <Calendar className="h-3.5 w-3.5 mr-1.5" />

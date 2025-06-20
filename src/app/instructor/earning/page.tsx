@@ -52,6 +52,10 @@ interface BestSellingCourse {
   revenue: number;
 }
 
+// Platform fee constant
+const PLATFORM_FEE_PERCENT = 20;
+const getNetEarning = (amount: number) => amount * (1 - PLATFORM_FEE_PERCENT / 100);
+
 export default function Earning() {
   const [stats, setStats] = useState<Stats>({
     total_revenue: 0,
@@ -155,6 +159,12 @@ export default function Earning() {
                         <ArrowUpRight className="h-3 w-3 mr-1" />
                         <span>All time earnings</span>
                       </p>
+                      {/* Net Earning */}
+                      {!isLoading && (
+                        <p className="text-xs text-green-700 mt-1">
+                          Net after 20% fee: <span className="font-semibold">₹{getNetEarning(stats.total_revenue).toFixed(2)}</span>
+                        </p>
+                      )}
                     </div>
                     <div className="p-2 bg-green-200/50 rounded-lg">
                       <IndianRupee className="h-5 w-5 text-green-700" />
@@ -179,11 +189,17 @@ export default function Earning() {
                         <Calendar className="h-3 w-3 mr-1" />
                         <span>Current month</span>
                       </p>
+                      {/* Net Earning */}
+                      {!isLoading && (
+                        <p className="text-xs text-buttonsCustom-700 mt-1">
+                          Net after 20% fee: <span className="font-semibold">₹{getNetEarning(stats.monthly_revenue).toFixed(2)}</span>
+                        </p>
+                      )}
                     </div>
                     <div className="p-2 bg-buttonsCustom-200/50 rounded-lg">
                       <TrendingUp className="h-5 w-5 text-buttonsCustom-700" />
-                                </div>
-                            </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
               
@@ -206,8 +222,8 @@ export default function Earning() {
                     </div>
                     <div className="p-2 bg-amber-200/50 rounded-lg">
                       <BookOpen className="h-5 w-5 text-amber-700" />
-                                        </div>
-                                    </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
               
@@ -227,11 +243,11 @@ export default function Earning() {
                         <Users className="h-3 w-3 mr-1" />
                         <span>Enrolled students</span>
                       </p>
-                                </div>
+                    </div>
                     <div className="p-2 bg-rose-200/50 rounded-lg">
                       <Users className="h-5 w-5 text-rose-700" />
-                                            </div>
-                                        </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -277,8 +293,8 @@ export default function Earning() {
                           <div className="space-y-2">
                             <Skeleton className="h-4 w-48" />
                             <Skeleton className="h-4 w-24" />
-                                            </div>
-                                        </div>
+                          </div>
+                        </div>
                       ))}
                     </div>
                   ) : bestSellingCourses.length > 0 ? (
@@ -319,6 +335,7 @@ export default function Earning() {
                                 </TableCell>
                                 <TableCell className="font-medium text-buttonsCustom-700">
                                   ₹{course.revenue.toFixed(2)}
+                                  <div className="text-xs text-green-700">Net: ₹{getNetEarning(course.revenue).toFixed(2)}</div>
                                 </TableCell>
                                 <TableCell>
                                   <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
@@ -360,14 +377,15 @@ export default function Earning() {
                                     </Badge>
                                     <div className="text-sm font-semibold text-buttonsCustom-700">
                                       ₹{course.revenue.toFixed(2)}
+                                      <div className="text-xs text-green-700">Net: ₹{getNetEarning(course.revenue).toFixed(2)}</div>
+                                    </div>
+                                  </div>
                                 </div>
-                            </div>
-                                </div>
-                                                            </div>
+                              </div>
                             </motion.div>
                           ))}
-                                </div>
-                            </div>
+                        </div>
+                      </div>
                     </>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-12 px-4">
@@ -442,10 +460,11 @@ export default function Earning() {
                                       <span className="text-xs font-medium text-green-700">{earning.month}</span>
                                     </div>
                                     <span>{getMonthName(earning.month)}</span>
-                                </div>
+                                  </div>
                                 </TableCell>
                                 <TableCell className="font-medium text-green-700">
                                   ₹{earning.total_earning?.toFixed(2) || "0.00"}
+                                  <div className="text-xs text-green-700">Net: ₹{getNetEarning(earning.total_earning).toFixed(2)}</div>
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -472,7 +491,8 @@ export default function Earning() {
                               </div>
                               <div className="text-sm font-semibold text-green-700">
                                 ₹{earning.total_earning?.toFixed(2) || "0.00"}
-                            </div>
+                                <div className="text-xs text-green-700">Net: ₹{getNetEarning(earning.total_earning).toFixed(2)}</div>
+                              </div>
                             </motion.div>
                           ))}
                         </div>
@@ -491,8 +511,8 @@ export default function Earning() {
               </Card>
             </motion.div>
           </div>
-                        </div>
-                    </div>
-                </div>
-    );
+        </div>
+      </div>
+    </div>
+  );
 }
