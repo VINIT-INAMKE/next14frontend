@@ -76,11 +76,11 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - api routes (/api/*)
-     * - static files (_next/static/*, _next/image/*, favicon.ico, etc.)
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+    // Exclude:
+    // - api routes (/api/*)
+    // - Next.js internals (_next/static/*, _next/image/*)
+    // - favicon.ico
+    // - all files with an extension (e.g., .svg, .png, .jpg, .css, .js, etc.)
+    "/((?!api|_next/static|_next/image|favicon.ico|[\\w-]+\\.\\w+).*)",
   ],
 };
