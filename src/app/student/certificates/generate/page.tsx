@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Progress } from "@/components/ui/progress";
 // import { useToast } from "@/components/ui/use-toast";
-import useAxios from "@/utils/axios";
+import apiInstance from "@/utils/axios";
 import UserData from "@/views/plugins/UserData";
 import StudentHeader from "@/components/student/Header";
 import StudentSidebar from "@/components/student/Sidebar";
@@ -72,6 +72,18 @@ interface CourseCompletion {
   completion_percentage: number;
   hasCertificate: boolean;
   certificate_id?: string;
+  hasPassedQuizAttempt: boolean;
+  quizAttempts?: Array<{
+    quiz_id: string;
+    quiz_title: string;
+    has_attempted: boolean;
+    total_attempts: number;
+    best_score: number;
+    passed: boolean;
+    attempts_remaining: number;
+    min_pass_points: number;
+    max_attempts?: number;
+  }>;
 }
 
 interface Certificate {
@@ -151,7 +163,7 @@ const useCertificate = () => {
     setIncompleteData(null);
 
     try {
-      const response = await useAxios.post('/student/certificate/create/', {
+      const response = await apiInstance.post('/student/certificate/create/', {
         user_id,
         course_id
       });
@@ -247,8 +259,8 @@ export default function CertificateGenerationPage() {
       if (!userId) throw new Error("User not authenticated");
 
       // Fetch enrolled courses with completion status
-      const coursesResponse = await useAxios.get(`/student/course-list/${userId}/`);
-      const certificatesResponse = await useAxios.get(`/student/certificate/list/${userId}/`);  
+      const coursesResponse = await apiInstance.get(`/student/course-list/${userId}/`);
+      const certificatesResponse = await apiInstance.get(`/student/certificate/list/${userId}/`);  
       
       // Check if data is an array
       if (!Array.isArray(coursesResponse.data)) {
@@ -268,34 +280,122 @@ export default function CertificateGenerationPage() {
         });
       }
       
-      // Combine course data with completion and certificate status
-      const coursesWithStatus = coursesResponse.data.map((courseData: CourseData) => {
-        // Calculate completion percentage based on completed lessons
-        const totalLectures = courseData.lectures?.length || 0;
-        const completedLessons = courseData.completed_lesson?.length || 0;
-        const completionPercentage = totalLectures > 0 
-          ? Math.round((completedLessons / totalLectures) * 100)
-          : 0;
+      // Fetch quiz attempts for each course
+      const coursesWithQuizData = await Promise.all(
+        coursesResponse.data.map(async (courseData: CourseData) => {
+          try {
+            // Step 1: Fetch quizzes for this course
+            const quizzesResponse = await apiInstance.get(`quiz/course/${courseData.course.course_id}/`);
+            const quizzes = quizzesResponse.data || [];
+            
+            // Step 2: Check student status for each quiz using the new endpoint
+            let hasPassedQuizAttempt = false;
+            const allQuizStatuses: Array<{
+              quiz_id: string;
+              quiz_title: string;
+              has_attempted: boolean;
+              total_attempts: number;
+              best_score: number;
+              passed: boolean;
+              attempts_remaining: number;
+              min_pass_points: number;
+              max_attempts?: number;
+            }> = [];
+            
+            console.log(`Checking quizzes for course: ${courseData.course.course_id}`);
+            console.log(`Found ${quizzes.length} quizzes`);
+            
+            for (const quiz of quizzes) {
+              try {
+                // Step 3: Get student status for this quiz
+                const statusResponse = await apiInstance.get(`quiz/${quiz.quiz_id}/student-status/`);
+                const quizStatus = statusResponse.data;
+                
+                console.log(`Quiz ${quiz.quiz_id} status:`, quizStatus);
+                
+                allQuizStatuses.push(quizStatus);
+                
+                // If any quiz has been passed, mark the course as having a passed attempt
+                if (quizStatus.passed === true) {
+                  hasPassedQuizAttempt = true;
+                  console.log(`Found passed quiz! Course ${courseData.course.course_id} now has passed quiz`);
+                }
+                
+              } catch (error) {
+                console.error(`Failed to fetch status for quiz ${quiz.quiz_id}:`, error);
+                // Add default status if API fails
+                allQuizStatuses.push({
+                  quiz_id: quiz.quiz_id,
+                  quiz_title: quiz.title || 'Unknown Quiz',
+                  has_attempted: false,
+                  total_attempts: 0,
+                  best_score: 0,
+                  passed: false,
+                  attempts_remaining: quiz.max_attempts || 0,
+                  min_pass_points: quiz.min_pass_points || 0
+                });
+              }
+            }
+            
+            console.log(`Final result for course ${courseData.course.course_id}: hasPassedQuizAttempt=${hasPassedQuizAttempt}`);
+            console.log(`All quiz statuses:`, allQuizStatuses);
+            
+            // Calculate completion percentage based on completed lessons
+            const totalLectures = courseData.lectures?.length || 0;
+            const completedLessons = courseData.completed_lesson?.length || 0;
+            const completionPercentage = totalLectures > 0 
+              ? Math.round((completedLessons / totalLectures) * 100)
+              : 0;
 
-        const certInfo = certificateMap.get(courseData.course?.id) || { hasCertificate: false };
-        
-        // Return course with completion status
-        return {
-          id: courseData.course?.id || 0,
-          course_id: courseData.course.course_id || '',
-          title: courseData.course?.title || 'Untitled Course',
-          description: courseData.course?.description || '',
-          level: courseData.course?.level || 'Unknown',
-          image: courseData.course?.image || null,
-          teacher: courseData.instructor || null,
-          total_lectures: totalLectures,
-          completed_lessons: completedLessons,
-          completion_percentage: completionPercentage,
-          ...certInfo
-        };
-      });
+            const certInfo = certificateMap.get(courseData.course?.id) || { hasCertificate: false };
+            
+            // Return course with completion status and quiz data
+            return {
+              id: courseData.course?.id || 0,
+              course_id: courseData.course.course_id || '',
+              title: courseData.course?.title || 'Untitled Course',
+              description: courseData.course?.description || '',
+              level: courseData.course?.level || 'Unknown',
+              image: courseData.course?.image || null,
+              teacher: courseData.instructor || null,
+              total_lectures: totalLectures,
+              completed_lessons: completedLessons,
+              completion_percentage: completionPercentage,
+              hasPassedQuizAttempt,
+              quizAttempts: allQuizStatuses,
+              ...certInfo
+            };
+          } catch (error) {
+            console.error(`Failed to fetch quiz data for course ${courseData.course.course_id}:`, error);
+            // Return course without quiz data if fetch fails
+            const totalLectures = courseData.lectures?.length || 0;
+            const completedLessons = courseData.completed_lesson?.length || 0;
+            const completionPercentage = totalLectures > 0 
+              ? Math.round((completedLessons / totalLectures) * 100)
+              : 0;
+
+            const certInfo = certificateMap.get(courseData.course?.id) || { hasCertificate: false };
+            
+            return {
+              id: courseData.course?.id || 0,
+              course_id: courseData.course.course_id || '',
+              title: courseData.course?.title || 'Untitled Course',
+              description: courseData.course?.description || '',
+              level: courseData.course?.level || 'Unknown',
+              image: courseData.course?.image || null,
+              teacher: courseData.instructor || null,
+              total_lectures: totalLectures,
+              completed_lessons: completedLessons,
+              completion_percentage: completionPercentage,
+              hasPassedQuizAttempt: false,
+              quizAttempts: [],
+              ...certInfo
+            };
+          }
+        })
+      );
       
-      setCompletedCourses(coursesWithStatus);
+      setCompletedCourses(coursesWithQuizData);
     } catch (error) {
       console.error("Failed to fetch courses:", error);
       setApiError("Failed to load courses. Please try again later.");
@@ -326,18 +426,23 @@ export default function CertificateGenerationPage() {
       completion_percentage: typeof course.completion_percentage === 'number' ? course.completion_percentage : 0,
       hasCertificate: !!course.hasCertificate,
       certificate_id: course.certificate_id || '',
+      hasPassedQuizAttempt: !!course.hasPassedQuizAttempt,
     };
     
     setSelectedCourse(validatedCourse);
     
-    if (validatedCourse.completion_percentage === 100) {
-      if (validatedCourse.hasCertificate) {
-        // Navigate to certificate view page if it already exists
-        window.location.href = `/student/certificates/view/${validatedCourse.certificate_id}`;
-      } else {
-        // Open confirmation dialog for new certificate
-        setAlertOpen(true);
-      }
+    // If certificate already exists, redirect to view it
+    if (validatedCourse.hasCertificate && validatedCourse.certificate_id) {
+      window.location.href = `/student/certificates/view/${validatedCourse.certificate_id}`;
+      return;
+    }
+    
+    // Check if course is 100% completed AND has at least 1 passed quiz attempt
+    const isEligibleForCertificate = validatedCourse.completion_percentage === 100 && validatedCourse.hasPassedQuizAttempt;
+    
+    if (isEligibleForCertificate) {
+      // Open confirmation dialog for new certificate
+      setAlertOpen(true);
     } else {
       // Show incomplete course message
       setAlertOpen(true);
@@ -499,15 +604,43 @@ export default function CertificateGenerationPage() {
                         <div className="text-xs text-buttonsCustom-500 mt-2">
                           {course.completed_lessons} of {course.total_lectures} lessons completed
                         </div>
+                        {course.completion_percentage === 100 && (
+                          <div className="text-xs mt-1">
+                            {course.hasPassedQuizAttempt ? (
+                              <span className="text-green-600 flex items-center">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Quiz passed ✓
+                              </span>
+                            ) : (
+                              <span className="text-orange-600 flex items-center">
+                                <AlertCircle className="h-3 w-3 mr-1" />
+                                Quiz not passed
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {course.hasCertificate && (
+                          <div className="text-xs mt-1">
+                            <span className="text-blue-600 flex items-center">
+                              <Award className="h-3 w-3 mr-1" />
+                              Certificate issued ✓
+                            </span>
+                          </div>
+                        )}
+                        {course.quizAttempts && course.quizAttempts.length > 0 && (
+                          <div className="text-xs mt-1 text-gray-500">
+                            {course.quizAttempts.filter(q => q.has_attempted).length} of {course.quizAttempts.length} quizzes attempted
+                          </div>
+                        )}
                       </CardContent>
                       <CardFooter className="px-4 pb-4 pt-0">
                         <Button
                           onClick={() => handleGenerateCertificate(course)}
-                          disabled={course.completion_percentage < 100 && !course.hasCertificate}
+                          disabled={course.hasCertificate || !(course.completion_percentage === 100 && course.hasPassedQuizAttempt)}
                           className={`w-full ${
                             course.hasCertificate 
                               ? 'bg-green-600 hover:bg-green-700' 
-                              : course.completion_percentage === 100
+                              : course.completion_percentage === 100 && course.hasPassedQuizAttempt
                                 ? 'bg-buttonsCustom-600 hover:bg-buttonsCustom-700'
                                 : 'bg-gray-400 cursor-not-allowed'
                           }`}
@@ -517,7 +650,7 @@ export default function CertificateGenerationPage() {
                               <CheckCircle className="h-4 w-4 mr-2" />
                               View Certificate
                             </>
-                          ) : course.completion_percentage === 100 ? (
+                          ) : course.completion_percentage === 100 && course.hasPassedQuizAttempt ? (
                             <>
                               {isGenerating && selectedCourse?.id === course.id ? (
                                 <>
@@ -534,7 +667,7 @@ export default function CertificateGenerationPage() {
                           ) : (
                             <>
                               <AlertCircle className="h-4 w-4 mr-2" />
-                              Complete Course
+                              {course.completion_percentage < 100 ? 'Complete Course' : 'Pass Quiz Required'}
                             </>
                           )}
                         </Button>
@@ -598,19 +731,23 @@ export default function CertificateGenerationPage() {
         <AlertDialogContent className="border-buttonsCustom-100">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {selectedCourse && selectedCourse.completion_percentage === 100 
+              {selectedCourse && selectedCourse.completion_percentage === 100 && selectedCourse.hasPassedQuizAttempt
                 ? selectedCourse.hasCertificate
                   ? "Certificate Available"
                   : "Generate Certificate" 
-                : "Course Not Completed"}
+                : "Requirements Not Met"}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {selectedCourse && selectedCourse.completion_percentage === 100 
+              {selectedCourse && selectedCourse.completion_percentage === 100 && selectedCourse.hasPassedQuizAttempt
                 ? selectedCourse.hasCertificate
                   ? `You already have a certificate for "${selectedCourse.title || 'this course'}". Would you like to view it?`
-                  : `You've completed "${selectedCourse.title || 'this course'}". Would you like to generate your certificate now?`
+                  : `You've completed "${selectedCourse.title || 'this course'}" and passed at least one quiz. Would you like to generate your certificate now?`
                 : selectedCourse 
-                  ? `You've only completed ${selectedCourse.completion_percentage || 0}% of "${selectedCourse.title || 'this course'}". You need to complete 100% to receive a certificate.`
+                  ? selectedCourse.completion_percentage < 100
+                    ? `You've only completed ${selectedCourse.completion_percentage || 0}% of "${selectedCourse.title || 'this course'}". You need to complete 100% of the course to receive a certificate.`
+                    : !selectedCourse.hasPassedQuizAttempt
+                      ? `You've completed "${selectedCourse.title || 'this course'}" but haven't passed any quizzes yet. You need to pass at least one quiz to receive a certificate.`
+                      : "Course information not available."
                   : "Course information not available."
               }
             </AlertDialogDescription>
@@ -620,10 +757,10 @@ export default function CertificateGenerationPage() {
               onClick={() => setAlertOpen(false)}
               className="bg-gray-100 text-gray-700 hover:bg-gray-200"
             >
-              {selectedCourse && selectedCourse.completion_percentage === 100 ? "Cancel" : "Close"}
+              {selectedCourse && selectedCourse.completion_percentage === 100 && selectedCourse.hasPassedQuizAttempt ? "Cancel" : "Close"}
             </AlertDialogAction>
             
-            {selectedCourse && selectedCourse.completion_percentage === 100 && (
+            {selectedCourse && selectedCourse.completion_percentage === 100 && selectedCourse.hasPassedQuizAttempt && (
               <AlertDialogAction 
                 onClick={selectedCourse.hasCertificate 
                   ? () => window.location.href = `/student/certificates/view/${selectedCourse.certificate_id}`

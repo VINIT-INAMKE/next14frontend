@@ -18,6 +18,7 @@ import {
   Lock,
   LogOut,
   Menu,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -37,6 +38,11 @@ const mainNavItems: NavItem[] = [
     href: "/instructor/courses/",
     label: "My Courses",
     icon: BookOpen,
+  },
+  {
+    href: "/instructor/quiz-manage/",
+    label: "Quiz Manage",
+    icon: FileText,
   },
   {
     href: "/instructor/create-course/",
