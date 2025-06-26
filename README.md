@@ -39,21 +39,25 @@
 
 ---
 
-## 🙋‍♂️ Why I Built This
+## 🗂️ Table of Contents
 
-> This project demonstrates my ability to architect, build, and document a full-stack, blockchain-integrated web application from scratch, with a focus on scalability, security, and user experience. It showcases advanced skills in decentralized systems, modern frontend frameworks, and collaborative open source development.
-
----
-
-## 🔮 Future Plans
-
-- [ ] Multi-chain support (Ethereum, Solana, etc.)
-- [ ] Mobile app (React Native)
-- [ ] More analytics for instructors
-- [ ] Community forum integration
-- [ ] Accessibility enhancements
-- [ ] Internationalization (i18n) support
-- [ ] Automated testing and CI/CD integration
+- [🏆 Project Highlights](#-project-highlights)
+- [✨ Overview](#-overview)
+- [🔥 Features](#-features)
+- [🧰 Full Tech Stack](#-full-tech-stack)
+- [🧩 Component Structure](#-component-structure)
+- [👥 User Roles & Flows](#-user-roles--flows)
+- [💎 What Makes Starlord LMS Unique?](#-what-makes-starlord-lms-unique)
+- [🛠️ Setup & Development](#️-setup--development)
+- [📁 Directory Structure](#-directory-structure)
+- [🤝 Contributing](#-contributing)
+- [📝 License](#-license)
+- [🙌 Credits](#-credits)
+- [👨‍💻 About the Author](#-about-the-author)
+- [👥 Contributors](#-contributors)
+- [🙋‍♂️ Why We Built This](#-why-we-built-this)
+- [🔮 Future Plans](#-future-plans)
+- [�� FAQ](#-faq)
 
 ---
 
@@ -73,29 +77,6 @@
 ### 🎯 Mission
 
 > We are a cutting-edge educational platform dedicated to blockchain and Web3 technology education. Our mission is to make high-quality learning resources accessible to everyone interested in the future of technology. We offer comprehensive courses taught by industry experts, designed to take you from beginner to expert.
-
----
-
-## 🗂️ Table of Contents
-
-- [🏆 Project Highlights](#-project-highlights)
-- [🙋‍♂️ Why I Built This](#-why-i-built-this)
-- [🔮 Future Plans](#-future-plans)
-- [✨ Overview](#-overview)
-- [🔥 Features](#-features)
-- [🧰 Full Tech Stack](#-full-tech-stack)
-- [🧩 Component Structure](#-component-structure)
-- [👥 User Roles & Flows](#-user-roles--flows)
-- [📸 Screenshots](#-screenshots)
-- [💎 What Makes Starlord LMS Unique?](#-what-makes-starlord-lms-unique)
-- [🛠️ Setup & Development](#️-setup--development)
-- [📁 Directory Structure](#-directory-structure)
-- [🤝 Contributing](#-contributing)
-- [📝 License](#-license)
-- [🙌 Credits](#-credits)
-- [👨‍💻 About the Author](#-about-the-author)
-- [👥 Contributors](#-contributors)
-- [💬 FAQ](#-faq)
 
 ---
 
@@ -221,20 +202,6 @@ graph LR
   D --> E[Track Earnings]
   E --> F[Manage Coupons]
 ```
-
----
-
-## 📸 Screenshots
-
-> _Replace the placeholders below with your own screenshots or GIFs!_
-
-<div align="center">
-  <img src="public/certificateimage.svg" width="350" alt="Certificate Example"/>
-  <img src="public/instructor.png" width="350" alt="Instructor Dashboard"/>
-  <!-- Add more screenshots or animated GIFs here -->
-</div>
-
-<div align="justify">
 
 ---
 
@@ -370,6 +337,24 @@ SOFTWARE.
 - Aaditya Mehetre
 - Adnan Shaikh
 - Santanu Chatterjee
+
+---
+
+## 🙋‍♂️ Why We Built This
+
+> This project demonstrates my ability to architect, build, and document a full-stack, blockchain-integrated web application from scratch, with a focus on scalability, security, and user experience. It showcases advanced skills in decentralized systems, modern frontend frameworks, and collaborative open source development.
+
+---
+
+## 🔮 Future Plans
+
+- [ ] Multi-chain support (Ethereum, Solana, etc.)
+- [ ] Mobile app (React Native)
+- [ ] More analytics for instructors
+- [ ] Community forum integration
+- [ ] Accessibility enhancements
+- [ ] Internationalization (i18n) support
+- [ ] Automated testing and CI/CD integration
 
 ---
 
