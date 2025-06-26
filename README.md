@@ -85,7 +85,6 @@
 - [✨ Overview](#-overview)
 - [🔥 Features](#-features)
 - [🧰 Full Tech Stack](#-full-tech-stack)
-- [🏛️ Architecture](#️-architecture)
 - [🧩 Component Structure](#-component-structure)
 - [👥 User Roles & Flows](#-user-roles--flows)
 - [📸 Screenshots](#-screenshots)
@@ -163,26 +162,7 @@
 | **Deployment**   | Vercel, Docker (recommended)       | CI/CD, scalable deployment                      |
 
 
-<div align="justify">
 
----
-
-## 🏛️ Architecture
-
-</div>
-
-```mermaid
-flowchart TD
-    A[Next.js 14 (App Router)] --> B[React 18 Components]
-    B --> C[Zustand State Management]
-    B --> D[shadcn/ui & Tailwind CSS]
-    B --> E[Mesh SDK (Cardano)]
-    B --> F[Axios API Layer]
-    F --> G[Backend API]
-    E --> H[Blockchain]
-    B --> I[CKEditor 5]
-    B --> J[Chart.js, Recharts]
-```
 
 <div align="justify">
 
