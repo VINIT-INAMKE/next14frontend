@@ -15,10 +15,10 @@
     <img src="https://img.shields.io/badge/Lint-ESLint-4B32C3?logo=eslint" alt="ESLint"/>
     <!-- Add more badges as needed -->
   </p>
-  <p>
+
     
     <a href="#about-the-author"><img src="https://img.shields.io/badge/Author-Vinit%20Inamke-blueviolet" alt="Author"/></a>
-  </p>
+
 </div>
 
 ---
