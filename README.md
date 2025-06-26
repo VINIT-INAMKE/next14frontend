@@ -17,8 +17,7 @@
   </p>
 
     
-    <a href="#about-the-author"><img src="https://img.shields.io/badge/Author-Vinit%20Inamke-blueviolet" alt="Author"/></a>
-
+   
 </div>
 
 ---
