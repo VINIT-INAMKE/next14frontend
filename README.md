@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="public/favicon.svg" alt="Starlord LMS Logo" width="100"/>
+  <img src="public/favicon.svg" alt="Knowledge Ledger Logo" width="100"/>
   
-  <h1>Starlord LMS 🚀</h1>
+  <h1>Knowledge Ledger 🚀</h1>
   <p><b>Cardano Blockchain-Powered Learning Management System</b></p>
   
   <p>
@@ -47,7 +47,7 @@
 - [🧰 Full Tech Stack](#-full-tech-stack)
 - [🧩 Component Structure](#-component-structure)
 - [👥 User Roles & Flows](#-user-roles--flows)
-- [💎 What Makes Starlord LMS Unique?](#-what-makes-starlord-lms-unique)
+- [💎 What Makes Knowledge Ledger Unique?](#-what-makes-starlord-lms-unique)
 - [🛠️ Setup & Development](#️-setup--development)
 - [📁 Directory Structure](#-directory-structure)
 - [🤝 Contributing](#-contributing)
@@ -63,7 +63,7 @@
 
 ## ✨ Overview
 
-**Starlord LMS** is a next-generation Learning Management System (LMS) focused on blockchain and Web3 technology education. Built on the Cardano blockchain, it offers a decentralized, verifiable, and transparent platform for both students and instructors. The platform enables learners to earn immutable, blockchain-stored certificates and credentials, while instructors can create, manage, and monetize high-quality courses.
+**Knowledge Ledger** is a next-generation Learning Management System (LMS) focused on blockchain and Web3 technology education. Built on the Cardano blockchain, it offers a decentralized, verifiable, and transparent platform for both students and instructors. The platform enables learners to earn immutable, blockchain-stored certificates and credentials, while instructors can create, manage, and monetize high-quality courses.
 
 </div>
 
@@ -205,7 +205,7 @@ graph LR
 
 ---
 
-## 💎 What Makes Starlord LMS Unique?
+## 💎 What Makes Knowledge Ledger Unique?
 
 - **Verifiable, tamper-proof credentials** for every learner.
 - **Seamless instructor and student experiences** with role-based dashboards.
